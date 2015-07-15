@@ -62,6 +62,7 @@ var okgoos = []string{
 	"dragonfly",
 	"linux",
 	"android",
+	"harvey",
 	"solaris",
 	"freebsd",
 	"nacl",
