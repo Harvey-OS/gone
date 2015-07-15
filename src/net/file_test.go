@@ -228,7 +228,7 @@ var filePacketConnTests = []struct {
 
 func TestFilePacketConn(t *testing.T) {
 	switch runtime.GOOS {
-	case "nacl", "plan9", "windows":
+	case "nacl", "plan9", "harvey", "windows":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 

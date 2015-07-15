@@ -73,6 +73,7 @@ func TestNM(t *testing.T) {
 	testfiles := []string{
 		"elf/testdata/gcc-386-freebsd-exec",
 		"elf/testdata/gcc-amd64-linux-exec",
+		"elf/testdata/gcc-amd64-harvey-exec",
 		"macho/testdata/gcc-386-darwin-exec",
 		"macho/testdata/gcc-amd64-darwin-exec",
 		// "pe/testdata/gcc-amd64-mingw-exec", // no symbols!

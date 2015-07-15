@@ -123,36 +123,42 @@ TEXT	·RawSyscall6(SB),NOSPLIT,$0-80
 	MOVQ	AX, err+80(SP)		
 	RET
 
-#define SYS_SEEK 39	/* from zsysnum_plan9_amd64.go */
 
-//func seek(placeholder uintptr, fd int, offset int64, whence int) (newoffset int64, err string)
-TEXT ·seek(SB),NOSPLIT,$0-56
-	LEAQ	newoffset+40(SP), AX
-	MOVQ	AX, placeholder+8(SP)
-	
-	MOVQ	$SYS_SEEK, BP	// syscall entry
+TEXT	·Seekcall(SB),NOSPLIT,$0-64
+	CALL	runtime·entersyscall(SB)
+	MOVQ	8(SP), BP	// syscall entry
+	// slide args down on top of system call number
+	LEAQ	16(SP), SI
+	LEAQ	8(SP), DI
+	CLD
+	MOVSQ
+	MOVSQ
+	MOVSQ
 	SYSCALL
-	
+	MOVQ	AX, r1+40(SP)
+	MOVQ	$0, r2+48(SP)
 	CMPL	AX, $-1
-	JNE	ok6
-	MOVQ	$-1, newoffset+40(SP)
-	
+	JNE	ok3
+
 	SUBQ	$16, SP
-	CALL	syscall·errstr(SB)
+	CALL	runtime·errstr(SB)
 	MOVQ	SP, SI
-	ADDQ	$16, SP	
-	JMP	copyresult6
+	ADDQ	$16, SP
+	JMP	copyresult3
 	
-ok6:
-	LEAQ	runtime·emptystring(SB), SI
+ok3:
+	LEAQ	runtime·emptystring(SB), SI	
 	
-copyresult6:
-	LEAQ	err+48(SP), DI
+copyresult3:
+	LEAQ	err+56(SP), DI
 
 	CLD
 	MOVSQ
 	MOVSQ
+
+	CALL	runtime·exitsyscall(SB)
 	RET
+
 
 //func exit(code int)
 // Import runtime·exit for cleanly exiting.

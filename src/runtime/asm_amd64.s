@@ -102,6 +102,10 @@ nocpuinfo:
 	JMP ok
 #endif
 needtls:
+#ifdef GOOS_harvey
+	// skip TLS setup on harvey
+	JMP ok
+#endif
 #ifdef GOOS_plan9
 	// skip TLS setup on Plan 9
 	JMP ok

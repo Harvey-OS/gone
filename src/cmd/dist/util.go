@@ -414,6 +414,7 @@ func main() {
 			gohostarch = "386"
 		}
 	case "plan9":
+	case "harvey":
 		gohostarch = os.Getenv("objtype")
 		if gohostarch == "" {
 			fatal("$objtype is unset")

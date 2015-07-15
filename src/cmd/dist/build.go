@@ -69,6 +69,7 @@ var okgoos = []string{
 	"dragonfly",
 	"linux",
 	"android",
+	"harvey",
 	"solaris",
 	"freebsd",
 	"nacl",
@@ -1197,7 +1198,7 @@ func cmdbanner() {
 	if !xsamefile(goroot_final, goroot) {
 		// If the files are to be moved, don't check that gobin
 		// is on PATH; assume they know what they are doing.
-	} else if gohostos == "plan9" {
+	} else if gohostos == "plan9" || gohostos == "harvey" {
 		// Check that gobin is bound before /bin.
 		pid := strings.Replace(readfile("#c/pid"), " ", "", -1)
 		ns := fmt.Sprintf("/proc/%s/ns", pid)

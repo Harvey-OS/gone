@@ -980,7 +980,7 @@ func (t *tester) cgoTestSO(dt *distTest, testpath string) error {
 
 func (t *tester) hasBash() bool {
 	switch t.gohostos {
-	case "windows", "plan9":
+	case "windows", "plan9", "harvey":
 		return false
 	}
 	return true

@@ -136,6 +136,10 @@ func testCPUProfile(t *testing.T, need []string, f func(dur time.Duration)) {
 		}
 	case "plan9":
 		t.Skip("skipping on plan9")
+
+	// maybe we can do this someday.
+	case "harvey": 
+		t.Skip("skipping on harvey")
 	}
 
 	const maxDuration = 5 * time.Second
@@ -425,6 +429,7 @@ var badOS = map[string]bool{
 	"darwin":    true,
 	"netbsd":    true,
 	"plan9":     true,
+	"harvey":  true,
 	"dragonfly": true,
 	"solaris":   true,
 }

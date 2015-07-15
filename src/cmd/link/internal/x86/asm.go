@@ -737,6 +737,7 @@ func asmb() {
 		obj.Hfreebsd,
 		obj.Hnetbsd,
 		obj.Hopenbsd,
+		obj.Hharvey,
 		obj.Hnacl:
 		ld.Asmbelf(int64(symo))
 

@@ -1306,7 +1306,7 @@ func TestTransportConcurrency(t *testing.T) {
 }
 
 func TestIssue4191_InfiniteGetTimeout(t *testing.T) {
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		t.Skip("skipping test; see https://golang.org/issue/7237")
 	}
 	defer afterTest(t)
@@ -1370,7 +1370,7 @@ func TestIssue4191_InfiniteGetTimeout(t *testing.T) {
 }
 
 func TestIssue4191_InfiniteGetToPutTimeout(t *testing.T) {
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		t.Skip("skipping test; see https://golang.org/issue/7237")
 	}
 	defer afterTest(t)
@@ -1696,9 +1696,9 @@ func testCancelRequestWithChannelBeforeDo(t *testing.T, withCtx bool) {
 	defer ts.Close()
 	defer close(unblockc)
 
-	// Don't interfere with the next test on plan9.
+	// Don't interfere with the next test on plan9 or harvey.
 	// Cf. https://golang.org/issues/11476
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		defer time.Sleep(500 * time.Millisecond)
 	}
 

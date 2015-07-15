@@ -51,6 +51,7 @@ var headers = []struct {
 	{"netbsd", obj.Hnetbsd},
 	{"openbsd", obj.Hopenbsd},
 	{"plan9", obj.Hplan9},
+	{"harvey", obj.Hharvey},
 	{"solaris", obj.Hsolaris},
 	{"windows", obj.Hwindows},
 	{"windowsgui", obj.Hwindows},
@@ -84,7 +85,7 @@ func linknew(arch *sys.Arch) *Link {
 	default:
 		log.Fatalf("unknown thread-local storage offset for %s", Headstr(ctxt.Headtype))
 
-	case obj.Hplan9, obj.Hwindows:
+	case obj.Hplan9, obj.Hwindows, obj.Hharvey:
 		break
 
 		/*

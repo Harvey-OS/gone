@@ -135,7 +135,7 @@ func TestExitStatus(t *testing.T) {
 	err := cmd.Run()
 	want := "exit status 42"
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		want = fmt.Sprintf("exit status: '%s %d: 42'", filepath.Base(cmd.Path), cmd.ProcessState.Pid())
 	}
 	if werr, ok := err.(*exec.ExitError); ok {
@@ -576,7 +576,7 @@ func TestHelperProcess(*testing.T) {
 	switch runtime.GOOS {
 	case "dragonfly", "freebsd", "netbsd", "openbsd":
 		ofcmd = "fstat"
-	case "plan9":
+	case "plan9", "harvey":
 		ofcmd = "/bin/cat"
 	}
 
@@ -685,7 +685,7 @@ func TestHelperProcess(*testing.T) {
 					fmt.Printf("leaked parent file. fd = %d; want %d\n", got, wantfd)
 					var args []string
 					switch runtime.GOOS {
-					case "plan9":
+					case "plan9", "harvey":
 						args = []string{fmt.Sprintf("/proc/%d/fd", os.Getpid())}
 					default:
 						args = []string{"-p", fmt.Sprint(os.Getpid())}
@@ -779,7 +779,7 @@ func TestIgnorePipeErrorOnSuccess(t *testing.T) {
 	testenv.MustHaveExec(t)
 
 	// We really only care about testing this on Unixy things.
-	if runtime.GOOS == "windows" || runtime.GOOS == "plan9" {
+	if runtime.GOOS == "windows" || runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		t.Skipf("skipping test on %q", runtime.GOOS)
 	}
 

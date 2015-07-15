@@ -723,6 +723,7 @@ const (
 	Hnetbsd
 	Hopenbsd
 	Hplan9
+	Hharvey
 	Hsolaris
 	Hwindows
 )

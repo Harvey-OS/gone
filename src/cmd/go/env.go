@@ -89,7 +89,7 @@ func runEnv(cmd *Command, args []string) {
 			switch runtime.GOOS {
 			default:
 				fmt.Printf("%s=\"%s\"\n", e.name, e.value)
-			case "plan9":
+			case "plan9", "harvey":
 				if strings.IndexByte(e.value, '\x00') < 0 {
 					fmt.Printf("%s='%s'\n", e.name, strings.Replace(e.value, "'", "''", -1))
 				} else {

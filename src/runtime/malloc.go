@@ -146,7 +146,8 @@ const (
 	//   windows/32       | 4KB        | 3
 	//   windows/64       | 8KB        | 2
 	//   plan9            | 4KB        | 3
-	_NumStackOrders = 4 - sys.PtrSize/4*sys.GoosWindows - 1*sys.GoosPlan9
+	//   harvey           | 4KB        | 3
+	_NumStackOrders = 4 - sys.PtrSize/4*sys.GoosWindows - 1*sys.GoosPlan9 - 1*goos_harvey
 
 	// Number of bits in page to span calculations (4k pages).
 	// On Windows 64-bit we limit the arena to 32GB or 35 bits.

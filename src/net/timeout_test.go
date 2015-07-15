@@ -56,9 +56,9 @@ func TestDialTimeout(t *testing.T) {
 
 	for i, tt := range dialTimeoutTests {
 		switch runtime.GOOS {
-		case "plan9", "windows":
+		case "plan9", "harvey", "windows":
 			testHookDialChannel = func() { time.Sleep(tt.guard) }
-			if runtime.GOOS == "plan9" {
+			if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 				break
 			}
 			fallthrough
@@ -167,7 +167,7 @@ func TestAcceptTimeout(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -220,7 +220,7 @@ func TestAcceptTimeoutMustReturn(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -266,7 +266,7 @@ func TestAcceptTimeoutMustNotReturn(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -315,7 +315,7 @@ var readTimeoutTests = []struct {
 
 func TestReadTimeout(t *testing.T) {
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -376,7 +376,7 @@ func TestReadTimeoutMustNotReturn(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -444,7 +444,7 @@ var readFromTimeoutTests = []struct {
 
 func TestReadFromTimeout(t *testing.T) {
 	switch runtime.GOOS {
-	case "nacl", "plan9":
+	case "nacl", "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS) // see golang.org/issue/8916
 	}
 
@@ -519,7 +519,7 @@ func TestWriteTimeout(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -567,7 +567,7 @@ func TestWriteTimeoutMustNotReturn(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -638,7 +638,7 @@ func TestWriteToTimeout(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "nacl", "plan9":
+	case "nacl", "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -691,7 +691,7 @@ func TestReadTimeoutFluctuation(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -729,7 +729,7 @@ func TestReadFromTimeoutFluctuation(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -767,7 +767,7 @@ func TestWriteTimeoutFluctuation(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -839,7 +839,7 @@ func (b neverEnding) Read(p []byte) (int, error) {
 
 func testVariousDeadlines(t *testing.T) {
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -959,7 +959,7 @@ func TestReadWriteProlongedTimeout(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 
@@ -1039,7 +1039,7 @@ func TestReadWriteDeadlineRace(t *testing.T) {
 	t.Parallel()
 
 	switch runtime.GOOS {
-	case "nacl", "plan9":
+	case "nacl", "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 

@@ -28,7 +28,7 @@ func TestProhibitionaryDialArg(t *testing.T) {
 	testenv.MustHaveExternalNetwork(t)
 
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 	if !supportsIPv4map {
@@ -55,9 +55,55 @@ func TestProhibitionaryDialArg(t *testing.T) {
 	}
 }
 
+func TestSelfConnect(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		// TODO(brainman): do not know why it hangs.
+		t.Skip("known-broken test on windows")
+	}
+
+	// Test that Dial does not honor self-connects.
+	// See the comment in DialTCP.
+
+	// Find a port that would be used as a local address.
+	l, err := Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, err := Dial("tcp", l.Addr().String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	addr := c.LocalAddr().String()
+	c.Close()
+	l.Close()
+
+	// Try to connect to that address repeatedly.
+	n := 100000
+	if testing.Short() {
+		n = 1000
+	}
+	switch runtime.GOOS {
+	case "darwin", "dragonfly", "freebsd", "netbsd", "openbsd", "plan9", "harvey", "solaris", "windows":
+		// Non-Linux systems take a long time to figure
+		// out that there is nothing listening on localhost.
+		n = 100
+	}
+	for i := 0; i < n; i++ {
+		c, err := DialTimeout("tcp", addr, time.Millisecond)
+		if err == nil {
+			if c.LocalAddr().String() == addr {
+				t.Errorf("#%d: Dial %q self-connect", i, addr)
+			} else {
+				t.Logf("#%d: Dial %q succeeded - possibly racing with other listener", i, addr)
+			}
+			c.Close()
+		}
+	}
+}
+
 func TestDialTimeoutFDLeak(t *testing.T) {
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("%s does not have full support of socktest", runtime.GOOS)
 	case "openbsd":
 		testenv.SkipFlaky(t, 15157)
@@ -66,11 +112,11 @@ func TestDialTimeoutFDLeak(t *testing.T) {
 	const T = 100 * time.Millisecond
 
 	switch runtime.GOOS {
-	case "plan9", "windows":
+	case "plan9", "windows", "harvey":
 		origTestHookDialChannel := testHookDialChannel
 		testHookDialChannel = func() { time.Sleep(2 * T) }
 		defer func() { testHookDialChannel = origTestHookDialChannel }()
-		if runtime.GOOS == "plan9" {
+		if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 			break
 		}
 		fallthrough
@@ -124,7 +170,7 @@ func TestDialTimeoutFDLeak(t *testing.T) {
 
 func TestDialerDualStackFDLeak(t *testing.T) {
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("%s does not have full support of socktest", runtime.GOOS)
 	case "windows":
 		t.Skipf("not implemented a way to cancel dial racers in TCP SYN-SENT state on %s", runtime.GOOS)

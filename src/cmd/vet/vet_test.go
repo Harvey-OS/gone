@@ -31,7 +31,7 @@ func TestMain(m *testing.M) {
 
 func MustHavePerl(t *testing.T) {
 	switch runtime.GOOS {
-	case "plan9", "windows":
+	case "harvey", "plan9", "windows":
 		t.Skipf("skipping test: perl not available on %s", runtime.GOOS)
 	}
 	if _, err := exec.LookPath("perl"); err != nil {

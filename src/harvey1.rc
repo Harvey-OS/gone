@@ -1,0 +1,77 @@
+#!/bin/rc -e
+# Copyright 2012 The Go Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style
+# license that can be found in the LICENSE file.
+
+# See golang.org/s/go15bootstrap for an overview of the build process.
+
+echo 1.5 > ../VERSION
+GOROOT_BOOTSTRAP=/go1.5
+GOOS=harvey
+GOARCH=amd64
+
+objtype=$GOARCH
+
+rfork e
+if(! test -f run.rc){
+	echo 'make.rc must be run from $GOROOT/src' >[1=2]
+	exit wrongdir
+}
+
+# Clean old generated file that will cause problems in the build.
+rm -f ./runtime/runtime_defs.go
+
+echo '##### Building Go bootstrap tool.'
+echo cmd/dist
+GOROOT = `{cd .. && pwd}
+if(! test -x $GOROOT_BOOTSTRAP/bin/go){
+	echo 'ERROR: Cannot find '$GOROOT_BOOTSTRAP'/bin/go.' >[1=2]
+	echo 'Set $GOROOT_BOOTSTRAP to a working Go tree >= Go 1.4.' >[1=2]
+	exit bootstrap
+}
+rm -f cmd/dist/dist
+echo foo 1
+GOROOT=$GOROOT_BOOTSTRAP GOOS='' GOARCH='' $GOROOT_BOOTSTRAP/bin/go build -o cmd/dist/dist ./cmd/dist
+echo foo 2
+eval `{./cmd/dist/dist env -9}
+echo foo 3
+
+if(~ $1 --dist-tool){
+	# Stop after building dist tool.
+	mkdir -p $GOTOOLDIR
+	if(! ~ $2 '')
+		cp cmd/dist/dist $2
+	mv cmd/dist/dist $GOTOOLDIR/dist
+	exit
+}
+
+echo foo 4
+
+#buildall = -a
+#if(~ $1 --no-clean)
+#	buildall = ()
+echo foo 5
+./cmd/dist/dist bootstrap $buildall -v # builds go_bootstrap
+echo foo 6
+# Delay move of dist tool to now, because bootstrap may clear tool directory.
+mv cmd/dist/dist $GOTOOLDIR/dist
+echo foo 7
+
+echo foo 8
+if(! ~ $GOHOSTARCH $GOARCH || ! ~ $GOHOSTOS $GOOS){
+	echo '##### Building packages and commands for host,' $GOHOSTOS/$GOHOSTARCH^.
+	GOOS=$GOHOSTOS GOARCH=$GOHOSTARCH \
+		$GOTOOLDIR/go_bootstrap install -gcflags $"GO_GCFLAGS -ldflags $"GO_LDFLAGS -v -p 1 std cmd
+	echo foo 9
+}
+
+echo '##### Building packages and commands for' $GOOS/$GOARCH^.
+$GOTOOLDIR/go_bootstrap install -gcflags $"GO_GCFLAGS -ldflags $"GO_LDFLAGS -v -p 1 std cmd
+echo foo 10
+
+rm -f $GOTOOLDIR/go_bootstrap
+
+if(! ~ $1 --no-banner)
+	$GOTOOLDIR/dist banner
+
+status=''

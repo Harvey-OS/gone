@@ -24,6 +24,7 @@
 // THE SOFTWARE.
 
 // +build !plan9
+// +build !harvey
 
 #include "textflag.h"
 
