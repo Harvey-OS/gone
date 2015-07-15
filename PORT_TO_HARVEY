@@ -1,0 +1,6 @@
+1. For all non-z* files that are *plan9.go, copy to *harvey.go
+2. For all build constraints in *harvey.go that are plan 9, change to harvey
+3. For all *Plan9.s, instead use the corresponding linux files.
+4. Find all other files that depend on plan 9, and add harvey
+
+
