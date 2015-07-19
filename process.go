@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/csv"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -13,8 +14,14 @@ import (
 
 var lines [][]string
 
+var debug = flag.Bool("debug", false, "Debug output")
+
 func done() {
-	c := csv.NewWriter(os.Stdout)
+	o, err := os.Create("PORT_TO_HARVEY_NEXT.csv")
+	if err != nil {
+		log.Fatalf("%v", err)
+	}
+	c := csv.NewWriter(o)
 	if err := c.WriteAll(lines); err != nil {
 		log.Fatalf("%v", err)
 	}
@@ -32,7 +39,9 @@ func main() {
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
-	fmt.Printf("%v\n", lines)
+	if *debug {
+		fmt.Printf("%v\n", lines)
+	}
 	for i := range lines {
 		var b string
 		if lines[i][1] != "" {
