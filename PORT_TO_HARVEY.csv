@@ -1,10 +1,10 @@
 0.,Add harvey to the list of OSes it can deal with
-0.5,Find,where runtime checks for the string Plan 9 and check for harvey too.
+0.5,Find where runtime checks for the string Plan 9 and check for harvey too.
 0.6,but it can not be automated. Let's get /dev/urandom and avoid the bullshit we're seeing in places
-1.,For all non-z* files that are *plan9.go, copy to *harvey.go
-2.,For all build constraints in *harvey.go that are plan 9, change to harvey
-3.,For all *Plan9.s, instead use the corresponding linux files.
-4.,Find all other files that depend on plan 9, and add harvey
+1.,For all non-z* files that are *plan9.go copy to *harvey.go
+2.,For all build constraints in *harvey.go that are plan 9 change to harvey
+3.,For all *Plan9.s instead use the corresponding linux files.
+4.,Find all other files that depend on plan 9 and add harvey
 5.,Figure out how to generate files for z*.go
 
 File,action (ignore/add harvey to build/fix/copy and rename)
