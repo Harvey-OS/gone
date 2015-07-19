@@ -3384,8 +3384,7 @@ func defaultSuffix() string {
 	switch runtime.GOOS {
 	case "windows":
 		return ".bat"
-	case "plan9":
-	case "harvey":
+	case "plan9", "harvey":
 		return ".rc"
 	default:
 		return ".bash"
