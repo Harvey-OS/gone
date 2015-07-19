@@ -45,6 +45,7 @@ func main() {
 		if err != nil {
 			log.Fatalf("%v", err)
 		}
+		repeat:
 		switch b {
 			case "ignore":
 				lines[i][1] = "ignore"
@@ -53,6 +54,12 @@ func main() {
 				lines[i][1] = "fixed"
 			case "edit":
 				fmt.Print("Run an editor")
+				editor := os.Getenv("EDITOR")
+				if editor == "" {
+					editor = "/bin/vi"
+				}
+				fmt.Printf("%v %v\n", editor, lines[i][0])
+				break repeat
 			case "copy":
 				fmt.Printf("Copy %v ", lines[i][0])
 				b, err := ioutil.ReadFile(lines[i][0])
