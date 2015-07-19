@@ -1430,7 +1430,7 @@ func TestGoTestDashOWritesBinary(t *testing.T) {
 // Issue 4568.
 func TestSymlinksDoNotConfuseGoList(t *testing.T) {
 	switch runtime.GOOS {
-	case "plan9", "windows":
+	case "plan9", "windows", "harvey":
 		t.Skipf("skipping symlink test on %s", runtime.GOOS)
 	}
 

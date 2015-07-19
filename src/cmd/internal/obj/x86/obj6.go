@@ -42,6 +42,7 @@ func canuse1insntls(ctxt *obj.Link) bool {
 	if ctxt.Arch.Regsize == 4 {
 		switch ctxt.Headtype {
 		case obj.Hlinux,
+			obj.Hharvey,
 			obj.Hnacl,
 			obj.Hplan9,
 			obj.Hwindows:
@@ -53,6 +54,7 @@ func canuse1insntls(ctxt *obj.Link) bool {
 
 	switch ctxt.Headtype {
 	case obj.Hplan9,
+		obj.Hharvey,
 		obj.Hwindows:
 		return false
 	case obj.Hlinux:

@@ -6,33 +6,32 @@
 3.,For all *Plan9.s instead use the corresponding linux files.
 4.,Find all other files that depend on plan 9 and add harvey
 5.,Figure out how to generate files for z*.go
-
 File,action (ignore/add harvey to build/fix/copy and rename)
-src/cmd/compile/internal/gc/lex.go,
-src/cmd/compile/internal/gc/util.go,
-src/cmd/dist/build.go,
-src/cmd/dist/test.go,
-src/cmd/dist/util.go,
-src/cmd/go/build.go,
+src/cmd/compile/internal/gc/lex.go,ignore
+src/cmd/compile/internal/gc/util.go,ignore
+src/cmd/dist/build.go,fixed
+src/cmd/dist/test.go,fixed
+src/cmd/dist/util.go,fixed
+src/cmd/go/build.go,fixed
 src/cmd/go/env.go,
-src/cmd/go/go_test.go,
-src/cmd/go/signal_notunix.go,
-src/cmd/internal/objfile/plan9obj.go,
-src/cmd/internal/obj/link.go,
-src/cmd/internal/obj/sym.go,
-src/cmd/internal/obj/x86/asm6.go,
-src/cmd/internal/obj/x86/obj6.go,
+src/cmd/go/go_test.go,fixed
+src/cmd/go/signal_notunix.go,fixed
+src/cmd/internal/objfile/plan9obj.go,ignore
+src/cmd/internal/obj/link.go,ignore
+src/cmd/internal/obj/sym.go,fixed
+src/cmd/internal/obj/x86/asm6.go,fixed
+src/cmd/internal/obj/x86/obj6.go,fixed
 src/cmd/internal/rsc.io/arm/armasm/decode_test.go,
 src/cmd/internal/rsc.io/arm/armasm/ext_test.go,
 src/cmd/internal/rsc.io/arm/armasm/plan9x.go,
 src/cmd/internal/rsc.io/arm/armasm/testdata/Makefile,
-src/cmd/internal/rsc.io/x86/x86asm/decode_test.go,
-src/cmd/internal/rsc.io/x86/x86asm/ext_test.go,
+src/cmd/internal/rsc.io/x86/x86asm/decode_test.go,ignore
+src/cmd/internal/rsc.io/x86/x86asm/ext_test.go,ignore
 src/cmd/internal/rsc.io/x86/x86asm/plan9ext_test.go,
-src/cmd/internal/rsc.io/x86/x86asm/plan9x.go,
-src/cmd/internal/rsc.io/x86/x86asm/plan9x_test.go,
-src/cmd/internal/rsc.io/x86/x86asm/testdata/decode.txt,
-src/cmd/internal/rsc.io/x86/x86asm/testdata/Makefile,
+src/cmd/internal/rsc.io/x86/x86asm/plan9x.go,ignore
+src/cmd/internal/rsc.io/x86/x86asm/plan9x_test.go,ignore
+src/cmd/internal/rsc.io/x86/x86asm/testdata/decode.txt,ignore
+src/cmd/internal/rsc.io/x86/x86asm/testdata/Makefile,ignore
 src/cmd/link/internal/amd64/asm.go,
 src/cmd/link/internal/amd64/obj.go,
 src/cmd/link/internal/arm64/asm.go,

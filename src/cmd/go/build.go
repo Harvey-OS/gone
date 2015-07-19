@@ -3385,6 +3385,7 @@ func defaultSuffix() string {
 	case "windows":
 		return ".bat"
 	case "plan9":
+	case "harvey":
 		return ".rc"
 	default:
 		return ".bash"

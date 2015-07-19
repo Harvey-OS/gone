@@ -56,6 +56,7 @@ var headers = []struct {
 	{"solaris", Hsolaris},
 	{"windows", Hwindows},
 	{"windowsgui", Hwindows},
+	{"harvey", Hharvey},
 }
 
 func headtype(name string) int {
@@ -124,6 +125,7 @@ func Linknew(arch *LinkArch) *Link {
 		Hnetbsd,
 		Hopenbsd,
 		Hdragonfly,
+		Hharvey,
 		Hsolaris:
 		ctxt.Tlsoffset = -1 * ctxt.Arch.Ptrsize
 

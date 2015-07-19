@@ -17,7 +17,7 @@ var lines [][]string
 var debug = flag.Bool("debug", false, "Debug output")
 
 func done() {
-	o, err := os.Create("PORT_TO_HARVEY_NEXT.csv")
+	o, err := os.Create("PORT_TO_HARVEY.csv")
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
