@@ -42,3 +42,5 @@ VERSION.cache
 
 bin/
 pkg/
+
+/process
