@@ -2,24 +2,25 @@ package main
 
 import (
 	"bytes"
+	"encoding/csv"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"encoding/csv"
 	"os"
+	"os/exec"
 	"strings"
 )
 
 var lines [][]string
 
-func done(){
+func done() {
 	c := csv.NewWriter(os.Stdout)
 	if err := c.WriteAll(lines); err != nil {
 		log.Fatalf("%v", err)
 	}
 	os.Exit(0)
 }
-		
+
 func main() {
 	b, err := ioutil.ReadFile("PORT_TO_HARVEY.csv")
 	if err != nil {
@@ -37,16 +38,17 @@ func main() {
 		if lines[i][1] != "" {
 			continue
 		}
-		fmt.Printf("ASK ABOUT %v\n", lines[i])
-		n, err := fmt.Scanln(&b)
-		if n == 0 {
-			break
-		}
-		if err != nil {
-			log.Fatalf("%v", err)
-		}
-		repeat:
-		switch b {
+		for {
+			advance := true
+			fmt.Printf("ASK ABOUT %v\n", lines[i])
+			n, err := fmt.Scanln(&b)
+			if n == 0 {
+				break
+			}
+			if err != nil {
+				log.Fatalf("%v", err)
+			}
+			switch b {
 			case "ignore":
 				lines[i][1] = "ignore"
 			case "skip":
@@ -56,10 +58,19 @@ func main() {
 				fmt.Print("Run an editor")
 				editor := os.Getenv("EDITOR")
 				if editor == "" {
-					editor = "/bin/vi"
+					editor = "/usr/bin/vi"
 				}
 				fmt.Printf("%v %v\n", editor, lines[i][0])
-				break repeat
+				cmd := exec.Command(editor, lines[i][0])
+				cmd.Stdin = os.Stdin
+				cmd.Stdout = os.Stdout
+				cmd.Stderr = os.Stderr
+				err = cmd.Run()
+				if err != nil {
+					log.Printf("%v", err)
+					done()
+				}
+				advance = false
 			case "copy":
 				fmt.Printf("Copy %v ", lines[i][0])
 				b, err := ioutil.ReadFile(lines[i][0])
@@ -67,7 +78,7 @@ func main() {
 					log.Printf("%v", err)
 					done()
 				}
-				if ! strings.Contains(lines[i][0], "plan9.go") {
+				if !strings.Contains(lines[i][0], "plan9.go") {
 					log.Printf("Can't split %v around plan9 9", lines[i][0])
 					done()
 				}
@@ -83,8 +94,11 @@ func main() {
 				done()
 			default:
 				fmt.Printf("?")
+			}
+			if advance {
+				break
+			}
 		}
-
 
 	}
 	done()
