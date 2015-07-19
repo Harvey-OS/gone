@@ -164,6 +164,7 @@ func archinit() {
 		obj.Hnetbsd,    /* netbsd */
 		obj.Hopenbsd,   /* openbsd */
 		obj.Hdragonfly, /* dragonfly */
+		obj.Hharvey, /* harvey */
 		obj.Hsolaris:   /* solaris */
 		ld.Elfinit()
 

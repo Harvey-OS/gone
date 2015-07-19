@@ -57,6 +57,7 @@ var headers = []struct {
 	{"netbsd", obj.Hnetbsd},
 	{"openbsd", obj.Hopenbsd},
 	{"plan9", obj.Hplan9},
+	{"harvey", obj.Hharvey},
 	{"solaris", obj.Hsolaris},
 	{"windows", obj.Hwindows},
 	{"windowsgui", obj.Hwindows},
@@ -105,6 +106,7 @@ func linknew(arch *LinkArch) *Link {
 		obj.Hnetbsd,
 		obj.Hopenbsd,
 		obj.Hdragonfly,
+		obj.Hharvey,
 		obj.Hsolaris:
 		ctxt.Tlsoffset = -1 * ctxt.Arch.Ptrsize
 
