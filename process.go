@@ -20,4 +20,10 @@ func main() {
 		log.Fatalf("%v", err)
 	}
 	fmt.Printf("%v\n", lines)
+	for i := range lines {
+		if lines[i][1] != "" {
+			continue
+		}
+		fmt.Printf("ASK ABOUT %v\n", lines[i])
+	}
 }
