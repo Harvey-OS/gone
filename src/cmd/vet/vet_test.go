@@ -28,8 +28,8 @@ func TestVet(t *testing.T) {
 	testenv.MustHaveGoBuild(t)
 
 	switch runtime.GOOS {
-	case "plan9", "windows":
-		// Plan 9 and Windows systems can't be guaranteed to have Perl and so can't run errchk.
+	case "harvey", "plan9", "windows":
+		// Harvey, Plan 9 and Windows systems can't be guaranteed to have Perl and so can't run errchk.
 		t.Skipf("skipping test; no Perl on %q", runtime.GOOS)
 	}
 
