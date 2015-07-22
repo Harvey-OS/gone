@@ -3,7 +3,7 @@
 // license that can be found in the LICENSE file.
 
 #include "textflag.h"
-// FIXME -- why was this needed? It seems stupid.
+
 // void runtime·memclr(void*, uintptr)
 TEXT runtime·memclr(SB),NOSPLIT,$0-16
 	MOVQ	ptr+0(FP), DI
