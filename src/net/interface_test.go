@@ -93,7 +93,7 @@ func TestInterfaces(t *testing.T) {
 		stats.multi6 += n6
 	}
 	switch runtime.GOOS {
-	case "nacl", "plan9", "solaris":
+	case "nacl", "plan9", "harvey", "solaris":
 	default:
 		// Test the existence of connected unicast routes for
 		// IPv4.
@@ -108,7 +108,7 @@ func TestInterfaces(t *testing.T) {
 		}
 	}
 	switch runtime.GOOS {
-	case "dragonfly", "nacl", "netbsd", "openbsd", "plan9", "solaris":
+	case "dragonfly", "nacl", "netbsd", "openbsd", "plan9", "harvey", "solaris":
 	default:
 		// Test the existence of connected multicast route
 		// clones for IPv4. Unlike IPv6, IPv4 multicast
