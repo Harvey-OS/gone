@@ -539,7 +539,7 @@ func TestReaddirOfFile(t *testing.T) {
 
 func TestHardLink(t *testing.T) {
 	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
-		t.Skip("skipping on " + runtime.GOOS ", hardlinks not supported")
+		t.Skip("skipping on " + runtime.GOOS + ", hardlinks not supported")
 	}
 	defer chtmpdir(t)()
 	from, to := "hardlinktestfrom", "hardlinktestto"

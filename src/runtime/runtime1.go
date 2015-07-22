@@ -54,6 +54,7 @@ func args(c int32, v **byte) {
 var (
 	// TODO: Retire in favor of GOOS== checks.
 	isplan9   int32
+	isharvey  int32
 	issolaris int32
 	iswindows int32
 )

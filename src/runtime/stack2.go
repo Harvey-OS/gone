@@ -59,7 +59,7 @@ const (
 	// to each stack below the usual guard area for OS-specific
 	// purposes like signal handling. Used on Windows, Plan 9,
 	// and Darwin/ARM because they do not use a separate stack.
-	_StackSystem = goos_windows*512*ptrSize + goos_plan9*512 + goos_darwin*goarch_arm*1024
+	_StackSystem = goos_windows*512*ptrSize + goos_plan9*512 + goos_harvey*512 + goos_darwin*goarch_arm*1024
 
 	// The minimum size of stack used by Go code
 	_StackMin = 2048

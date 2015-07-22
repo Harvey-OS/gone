@@ -37,7 +37,7 @@ func TestCgoTraceback(t *testing.T) {
 }
 
 func TestCgoExternalThreadPanic(t *testing.T) {
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		t.Skipf("no pthreads on %s", runtime.GOOS)
 	}
 	csrc := cgoExternalThreadPanicC
@@ -54,7 +54,7 @@ func TestCgoExternalThreadPanic(t *testing.T) {
 func TestCgoExternalThreadSIGPROF(t *testing.T) {
 	// issue 9456.
 	switch runtime.GOOS {
-	case "plan9", "windows":
+	case "plan9", "harvey", "windows":
 		t.Skipf("no pthreads on %s", runtime.GOOS)
 	case "darwin":
 		if runtime.GOARCH != "arm" && runtime.GOARCH != "arm64" {

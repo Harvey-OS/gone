@@ -24,7 +24,7 @@
 // unnecessary rechecks of sig.mask, but it cannot lead to missed signals
 // nor deadlocks.
 
-// +build !plan9
+// +build !plan9 !harvey
 
 package runtime
 

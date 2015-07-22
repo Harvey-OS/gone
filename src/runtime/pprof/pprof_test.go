@@ -136,6 +136,10 @@ func testCPUProfile(t *testing.T, need []string, f func()) {
 		}
 	case "plan9":
 		t.Skip("skipping on plan9")
+
+	// maybe we can do this someday.
+	case "harvey": 
+		t.Skip("skipping on harvey")
 	}
 
 	var prof bytes.Buffer
@@ -322,6 +326,7 @@ var badOS = map[string]bool{
 	"darwin": true,
 	"netbsd": true,
 	"plan9":  true,
+	"harvey":  true,
 }
 
 func TestBlockProfile(t *testing.T) {

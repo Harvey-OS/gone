@@ -71,6 +71,10 @@ needtls:
 	// skip TLS setup on Plan 9
 	CMPL	runtime·isplan9(SB), $1
 	JEQ ok
+	// skip TLS setup on harvey (for now)
+	// This will almost certainly change
+	CMPL	runtime·isharvey(SB), $1
+	JEQ ok
 	// skip TLS setup on Solaris
 	CMPL	runtime·issolaris(SB), $1
 	JEQ ok

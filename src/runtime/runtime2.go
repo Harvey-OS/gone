@@ -342,7 +342,7 @@ type m struct {
 	ts      mts
 	scratch mscratch
 	//#endif
-	//#ifdef GOOS_plan9
+	//#if defined(GOOS_plan9) || defined(GOOS_harvey)
 	notesig *int8
 	errstr  *byte
 	//#endif

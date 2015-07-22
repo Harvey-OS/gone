@@ -231,7 +231,7 @@ func TestTraceSymbolize(t *testing.T) {
 		}},
 	}
 	// Stacks for the following events are OS-dependent due to OS-specific code in net package.
-	if runtime.GOOS != "windows" && runtime.GOOS != "plan9" {
+	if runtime.GOOS != "windows" && runtime.GOOS != "plan9" || runtime.GOOS == "harvey" {
 		want = append(want, []eventDesc{
 			eventDesc{trace.EvGoBlockNet, []frame{
 				frame{"net.(*netFD).accept", 0},
