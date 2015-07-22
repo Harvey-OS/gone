@@ -40,7 +40,7 @@ func syscallMode(i FileMode) (o uint32) {
 	if i&ModeSticky != 0 {
 		o |= syscall.S_ISVTX
 	}
-	// No mapping for Go's ModeTemporary (plan9 only).
+	// No mapping for Go's ModeTemporary (plan9 and harvey only).
 	return
 }
 

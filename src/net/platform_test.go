@@ -23,7 +23,7 @@ func testableNetwork(network string) bool {
 		}
 	case "ip", "ip4", "ip6":
 		switch runtime.GOOS {
-		case "nacl", "plan9":
+		case "nacl", "plan9", "harvey":
 			return false
 		default:
 			if os.Getuid() != 0 {
@@ -32,7 +32,7 @@ func testableNetwork(network string) bool {
 		}
 	case "unix", "unixgram":
 		switch runtime.GOOS {
-		case "nacl", "plan9", "windows":
+		case "nacl", "plan9", "harvey", "windows":
 			return false
 		}
 		// iOS does not support unix, unixgram.
@@ -41,7 +41,7 @@ func testableNetwork(network string) bool {
 		}
 	case "unixpacket":
 		switch runtime.GOOS {
-		case "android", "darwin", "nacl", "plan9", "windows":
+		case "android", "darwin", "nacl", "plan9", "harvey", "windows":
 			fallthrough
 		case "freebsd": // FreeBSD 8 and below don't support unixpacket
 			return false
@@ -152,7 +152,7 @@ var condFatalf = func() func(*testing.T, string, ...interface{}) {
 	// A few APIs, File, Read/WriteMsg{UDP,IP}, are not
 	// implemented yet on both Plan 9 and Windows.
 	switch runtime.GOOS {
-	case "plan9", "windows":
+	case "plan9", "harvey", "windows":
 		return (*testing.T).Logf
 	}
 	return (*testing.T).Fatalf

@@ -22,7 +22,7 @@ import (
 
 func TestTCPListenerSpecificMethods(t *testing.T) {
 	switch runtime.GOOS {
-	case "plan9":
+	case "plan9", "harvey":
 		t.Skipf("not supported on %s", runtime.GOOS)
 	}
 

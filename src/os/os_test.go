@@ -77,7 +77,7 @@ var sysdir = func() *sysDir {
 				"services",
 			},
 		}
-	case "plan9":
+	case "plan9", "harvey":
 		return &sysDir{
 			"/lib/ndb",
 			[]string{
@@ -334,7 +334,7 @@ func TestReaddirnamesOneAtATime(t *testing.T) {
 			}
 			dir = wd
 		}
-	case "plan9":
+	case "plan9", "harvey":
 		dir = "/bin"
 	case "windows":
 		dir = Getenv("SystemRoot") + "\\system32"
@@ -447,7 +447,7 @@ func touch(t *testing.T, name string) {
 
 func TestReaddirStatFailures(t *testing.T) {
 	switch runtime.GOOS {
-	case "windows", "plan9":
+	case "windows", "plan9", "harvey":
 		// Windows and Plan 9 already do this correctly,
 		// but are structured with different syscalls such
 		// that they don't use Lstat, so the hook below for
@@ -538,8 +538,8 @@ func TestReaddirOfFile(t *testing.T) {
 }
 
 func TestHardLink(t *testing.T) {
-	if runtime.GOOS == "plan9" {
-		t.Skip("skipping on plan9, hardlinks not supported")
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
+		t.Skip("skipping on " + runtime.GOOS ", hardlinks not supported")
 	}
 	defer chtmpdir(t)()
 	from, to := "hardlinktestfrom", "hardlinktestto"
@@ -605,7 +605,7 @@ func chtmpdir(t *testing.T) func() {
 
 func TestSymlink(t *testing.T) {
 	switch runtime.GOOS {
-	case "android", "nacl", "plan9":
+	case "android", "nacl", "plan9", "harvey":
 		t.Skipf("skipping on %s", runtime.GOOS)
 	case "windows":
 		if !supportsSymlinks {
@@ -725,8 +725,8 @@ func TestRename(t *testing.T) {
 }
 
 func TestRenameOverwriteDest(t *testing.T) {
-	if runtime.GOOS == "plan9" {
-		t.Skip("skipping on plan9")
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
+		t.Skip("skipping on " + runtime.GOOS)
 	}
 	defer chtmpdir(t)()
 	from, to := "renamefrom", "renameto"
@@ -951,7 +951,7 @@ func testChtimes(t *testing.T, name string) {
 	*/
 	pat := Atime(postStat)
 	pmt := postStat.ModTime()
-	if !pat.Before(at) && runtime.GOOS != "plan9" && runtime.GOOS != "nacl" {
+	if !pat.Before(at) && runtime.GOOS != "plan9" && runtime.GOOS != "harvey" && runtime.GOOS != "nacl" {
 		t.Errorf("AccessTime didn't go backwards; was=%d, after=%d", at, pat)
 	}
 
@@ -976,7 +976,7 @@ func TestChdirAndGetwd(t *testing.T) {
 	switch runtime.GOOS {
 	case "android":
 		dirs = []string{"/", "/system/bin"}
-	case "plan9":
+	case "plan9", "harvey":
 		dirs = []string{"/", "/usr"}
 	case "darwin":
 		switch runtime.GOARCH {
@@ -1167,7 +1167,7 @@ func TestOpenError(t *testing.T) {
 			t.Errorf("Open(%q, %d) returns error of %T type; want *PathError", tt.path, tt.mode, err)
 		}
 		if perr.Err != tt.error {
-			if runtime.GOOS == "plan9" {
+			if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 				syscallErrStr := perr.Err.Error()
 				expectedErrStr := strings.Replace(tt.error.Error(), "file ", "", 1)
 				if !strings.HasSuffix(syscallErrStr, expectedErrStr) {
@@ -1255,7 +1255,7 @@ func TestHostname(t *testing.T) {
 	// There is no other way to fetch hostname on windows, but via winapi.
 	// On Plan 9 it can be taken from #c/sysname as Hostname() does.
 	switch runtime.GOOS {
-	case "android", "plan9":
+	case "android", "plan9", "harvey":
 		t.Skipf("%s doesn't have /bin/hostname", runtime.GOOS)
 	case "windows":
 		testWindowsHostname(t)
@@ -1559,9 +1559,9 @@ func TestKillStartProcess(t *testing.T) {
 }
 
 func TestGetppid(t *testing.T) {
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		// TODO: golang.org/issue/8206
-		t.Skipf("skipping test on plan9; see issue 8206")
+		t.Skipf("skipping test on " + runtime.GOOS + "; see issue 8206")
 	}
 
 	testenv.MustHaveExec(t)

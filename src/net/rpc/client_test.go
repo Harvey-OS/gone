@@ -53,7 +53,7 @@ func (s *S) Recv(nul *struct{}, reply *R) error {
 }
 
 func TestGobError(t *testing.T) {
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		t.Skip("skipping test; see https://golang.org/issue/8908")
 	}
 	defer func() {

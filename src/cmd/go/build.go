@@ -1256,6 +1256,7 @@ func (b *builder) build(a *action) (err error) {
 	if a.p.Standard && a.p.ImportPath == "runtime" && buildContext.Compiler == "gc" &&
 		(!hasString(a.p.GoFiles, "zgoos_"+buildContext.GOOS+".go") ||
 			!hasString(a.p.GoFiles, "zgoarch_"+buildContext.GOARCH+".go")) {
+			fmt.Printf("Don't see zgoos_"+buildContext.GOOS+".go"+" in GoFiles (%v) in rumtime", a.p.GoFiles)
 		return fmt.Errorf("%s/%s must be bootstrapped using make%v", buildContext.GOOS, buildContext.GOARCH, defaultSuffix())
 	}
 
