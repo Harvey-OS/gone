@@ -447,7 +447,7 @@ func TestMuxRedirectLeadingSlashes(t *testing.T) {
 }
 
 func TestServerTimeouts(t *testing.T) {
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		t.Skip("skipping test; see https://golang.org/issue/7237")
 	}
 	defer afterTest(t)

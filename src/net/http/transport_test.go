@@ -875,7 +875,7 @@ func TestTransportGzipShort(t *testing.T) {
 
 // tests that persistent goroutine connections shut down when no longer desired.
 func TestTransportPersistConnLeak(t *testing.T) {
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		t.Skip("skipping test; see https://golang.org/issue/7237")
 	}
 	defer afterTest(t)
@@ -944,7 +944,7 @@ func TestTransportPersistConnLeak(t *testing.T) {
 // golang.org/issue/4531: Transport leaks goroutines when
 // request.ContentLength is explicitly short
 func TestTransportPersistConnLeakShortBody(t *testing.T) {
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		t.Skip("skipping test; see https://golang.org/issue/7237")
 	}
 	defer afterTest(t)
@@ -1152,7 +1152,7 @@ func TestTransportConcurrency(t *testing.T) {
 }
 
 func TestIssue4191_InfiniteGetTimeout(t *testing.T) {
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		t.Skip("skipping test; see https://golang.org/issue/7237")
 	}
 	defer afterTest(t)
@@ -1216,7 +1216,7 @@ func TestIssue4191_InfiniteGetTimeout(t *testing.T) {
 }
 
 func TestIssue4191_InfiniteGetToPutTimeout(t *testing.T) {
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		t.Skip("skipping test; see https://golang.org/issue/7237")
 	}
 	defer afterTest(t)
@@ -1532,9 +1532,9 @@ func TestCancelRequestWithChannelBeforeDo(t *testing.T) {
 	defer ts.Close()
 	defer close(unblockc)
 
-	// Don't interfere with the next test on plan9.
+	// Don't interfere with the next test on plan9 or harvey.
 	// Cf. https://golang.org/issues/11476
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		defer time.Sleep(500 * time.Millisecond)
 	}
 
@@ -2256,7 +2256,7 @@ func (f closerFunc) Close() error { return f() }
 
 // Issue 6981
 func TestTransportClosesBodyOnError(t *testing.T) {
-	if runtime.GOOS == "plan9" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" {
 		t.Skip("skipping test; see https://golang.org/issue/7782")
 	}
 	defer afterTest(t)
