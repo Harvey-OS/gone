@@ -3779,7 +3779,6 @@ func doasm(ctxt *obj.Link, p *obj.Prog) {
 							log.Fatalf("unknown TLS base location for %s", obj.Headstr(ctxt.Headtype))
 
 						case obj.Hlinux,
-							obj.Hharvey,
 							obj.Hnacl:
 							// ELF TLS base is 0(GS).
 							pp.From = p.From
@@ -3795,7 +3794,7 @@ func doasm(ctxt *obj.Link, p *obj.Prog) {
 							ctxt.Andptr = ctxt.Andptr[1:]
 							asmand(ctxt, p, &pp.From, &p.To)
 
-						case obj.Hplan9:
+						case obj.Hplan9, obj.Hharvey:
 							if ctxt.Plan9privates == nil {
 								ctxt.Plan9privates = obj.Linklookup(ctxt, "_privates", 0)
 							}
@@ -3831,7 +3830,7 @@ func doasm(ctxt *obj.Link, p *obj.Prog) {
 					default:
 						log.Fatalf("unknown TLS base location for %s", obj.Headstr(ctxt.Headtype))
 
-					case obj.Hlinux, obj.Hharvey:
+					case obj.Hlinux:
 						if ctxt.Flag_shared == 0 {
 							log.Fatalf("unknown TLS base location for linux without -shared")
 						}
@@ -3857,7 +3856,7 @@ func doasm(ctxt *obj.Link, p *obj.Prog) {
 						r.Add = -4
 						put4(ctxt, 0)
 
-					case obj.Hplan9:
+					case obj.Hplan9, obj.Hharvey:
 						if ctxt.Plan9privates == nil {
 							ctxt.Plan9privates = obj.Linklookup(ctxt, "_privates", 0)
 						}

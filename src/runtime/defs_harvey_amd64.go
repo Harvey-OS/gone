@@ -1,7 +1,7 @@
 package runtime
 
-FIXME
-const _PAGESIZE = 0x1000
+//const _PAGESIZE = 0x1000
+const _PAGESIZE = 0x200000
 
 type ureg struct {
 	ax  uint64
@@ -20,10 +20,10 @@ type ureg struct {
 	r14 uint64
 	r15 uint64
 
-	ds uint16
-	es uint16
-	fs uint16
-	gs uint16
+	//ds uint16
+	//es uint16
+	//fs uint16
+	//gs uint16
 
 	_type uint64
 	error uint64 /* error code (or zero) */
@@ -63,7 +63,7 @@ func dumpregs(u *ureg) {
 	print("r15   ", hex(u.r15), "\n")
 	print("ip    ", hex(u.ip), "\n")
 	print("flags ", hex(u.flags), "\n")
-	print("cs    ", hex(u.cs), "\n")
-	print("fs    ", hex(u.fs), "\n")
-	print("gs    ", hex(u.gs), "\n")
+	//print("cs    ", hex(u.cs), "\n")
+	//print("fs    ", hex(u.fs), "\n")
+	//print("gs    ", hex(u.gs), "\n")
 }

@@ -159,12 +159,24 @@ func archinit() {
 			ld.INITDAT = 0
 		}
 
+	case obj.Hharvey:
+		ld.Elfinit()
+		ld.HEADR = ld.ELFRESERVE
+
+		if ld.INITTEXT == -1 {
+			ld.INITTEXT = 0x400000 + int64(ld.HEADR)
+		}
+		if ld.INITDAT == -1 {
+			ld.INITDAT = 0
+		}
+		if ld.INITRND == -1 {
+			ld.INITRND = 0x200000
+		}
 	case obj.Hlinux, /* elf64 executable */
 		obj.Hfreebsd,   /* freebsd */
 		obj.Hnetbsd,    /* netbsd */
 		obj.Hopenbsd,   /* openbsd */
 		obj.Hdragonfly, /* dragonfly */
-		obj.Hharvey, /* harvey */
 		obj.Hsolaris:   /* solaris */
 		ld.Elfinit()
 
