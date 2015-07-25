@@ -114,17 +114,6 @@ func usleep(µs uint32) {
 }
 
 //go:nosplit
-func nanotime() int64 {
-	var scratch int64
-	ns := nsec(&scratch)
-	// TODO(aram): remove hack after I fix _nsec in the pc64 kernel.
-	if ns == 0 {
-		return scratch
-	}
-	return ns
-}
-
-//go:nosplit
 func itoa(buf []byte, val uint64) []byte {
 	i := len(buf) - 1
 	for val >= 10 {
@@ -199,6 +188,12 @@ func newosproc(mp *m, stk unsafe.Pointer) {
 	if pid == 0 {
 		tstart_plan9(mp)
 	}
+}
+
+//go:nosplit
+func semablip() {
+	_g_ := getg()
+	print("semablip: &_g_.m.waitsemacount = ", unsafe.Pointer(&_g_.m.waitsemacount), "\n")
 }
 
 //go:nosplit

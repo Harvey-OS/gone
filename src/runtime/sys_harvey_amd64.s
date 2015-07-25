@@ -80,12 +80,6 @@ TEXT runtime·plan9_tsemacquire(SB),NOSPLIT,$0
 	MOVL	AX, ret+16(FP)
 	RET
 
-TEXT runtime·nsec(SB),NOSPLIT,$0
-	MOVQ	$4149, AX
-	SYSCALL
-	MOVQ	AX, ret+8(FP)
-	RET
-
 TEXT runtime·notify(SB),NOSPLIT,$0
 	MOVQ	arg0+0(FP), DI
 	MOVQ	$4124, AX
@@ -145,10 +139,16 @@ TEXT runtime·m_errstr(SB),NOSPLIT,$16-16
 TEXT runtime·setldt(SB),NOSPLIT,$0
 	RET
 
+TEXT runtime·nanotime(SB),NOSPLIT,$0
+	MOVQ	$4149, AX
+	SYSCALL
+	MOVQ	AX, ret+0(FP)
+	RET
+
 // func now() (sec int64, nsec int32)
 TEXT time·now(SB),NOSPLIT,$8-12
-	CALL	runtime·nanotime(SB)
-	MOVQ	0(SP), AX
+	MOVQ	$4149, AX
+	SYSCALL
 
 	// generated code for
 	//	func f(x uint64) (uint64, uint64) { return x/1000000000, x%100000000 }

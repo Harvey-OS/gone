@@ -39,12 +39,14 @@ func plan9_tsemacquire(addr *uint32, ms int32) int32
 func plan9_semrelease(addr *uint32, count int32) int32
 
 //go:noescape
+func nanotime() int64
+//go:noescape
 func notify(fn unsafe.Pointer) int32
 
 func noted(mode int32) int32
 
 //go:noescape
-func nsec(*int64) int64
+func nsec() int64
 
 //go:noescape
 func sigtramp(ureg, msg unsafe.Pointer)
