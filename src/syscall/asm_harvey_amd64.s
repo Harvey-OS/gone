@@ -9,149 +9,129 @@
 #include "funcdata.h"
 
 //
-// System call support for Plan 9
+// System call support for Harvey
 //
-
-//func Syscall(trap, a1, a2, a3 uintptr) (r1, r2 uintptr, err string)
-//func Syscall6(trap, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2 uintptr, err string)
+//func Syscall(trap, a1, a2, a3 uintptr) (r1, r2 uintptr, err ErrorString)
+//func Syscall6(trap, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2 uintptr, err ErrorString)
 //func RawSyscall(trap, a1, a2, a3 uintptr) (r1, r2, err uintptr)
 //func RawSyscall6(trap, a1, a2, a3, a4, a5, a6 uintptr) (r1, r2, err uintptr)
 
 TEXT	·Syscall(SB),NOSPLIT,$0-64
 	CALL	runtime·entersyscall(SB)
-	MOVQ	8(SP), BP	// syscall entry
-	// slide args down on top of system call number
-	LEAQ	16(SP), SI
-	LEAQ	8(SP), DI
-	CLD
-	MOVSQ
-	MOVSQ
-	MOVSQ
+	MOVQ	a1+8(FP), DI
+	MOVQ	a2+16(FP), SI
+	MOVQ	a3+24(FP), DX
+	MOVQ	trap+0(FP), AX
 	SYSCALL
-	MOVQ	AX, r1+40(SP)
-	MOVQ	$0, r2+48(SP)
+	MOVQ	AX, r1+32(FP)
+	MOVQ	$0, r2+40(FP)
+	LEAQ	runtime·emptystring(SB), SI
 	CMPL	AX, $-1
-	JNE	ok3
+	JNE	ok1
+
+//	LEAQ	runtime·emptystring(SB), SI
+//	CMPQ	AX, $0xfffffffffffff001
+//	JLS	ok1
 
 	SUBQ	$16, SP
-	CALL	runtime·errstr(SB)
+	CALL	runtime·m_errstr(SB)
 	MOVQ	SP, SI
 	ADDQ	$16, SP
-	JMP	copyresult3
-
-ok3:
-	LEAQ	runtime·emptystring(SB), SI
-
-copyresult3:
-	LEAQ	err+56(SP), DI
-
-	CLD
-	MOVSQ
-	MOVSQ
-
+ok1:
+	MOVQ	0(SI), AX
+	MOVQ	8(SI), DX
+	MOVQ	AX, err_base+48(FP)
+	MOVQ	DX, err_len+56(FP)
 	CALL	runtime·exitsyscall(SB)
 	RET
+
 
 TEXT	·Syscall6(SB),NOSPLIT,$0-88
 	CALL	runtime·entersyscall(SB)
-	MOVQ	8(SP), BP	// syscall entry
-	// slide args down on top of system call number
-	LEAQ		16(SP), SI
-	LEAQ		8(SP), DI
-	CLD
-	MOVSQ
-	MOVSQ
-	MOVSQ
-	MOVSQ
-	MOVSQ
-	MOVSQ
+	MOVQ	a1+8(FP), DI
+	MOVQ	a2+16(FP), SI
+	MOVQ	a3+24(FP), DX
+	MOVQ	a4+32(FP), R10
+	MOVQ	a5+40(FP), R8
+	MOVQ	a6+48(FP), R9
+	MOVQ	trap+0(FP), AX
 	SYSCALL
-	MOVQ	AX, r1+64(SP)
-	MOVQ	$0, r2+72(SP)
+	MOVQ	AX, r1+56(FP)
+	MOVQ	$0, r2+64(FP)
+	LEAQ	runtime·emptystring(SB), SI
 	CMPL	AX, $-1
-	JNE	ok4
+	JNE	ok2
+
+//	LEAQ	runtime·emptystring(SB), SI
+//	CMPQ	AX, $0xfffffffffffff001
+//	JLS	ok2
 
 	SUBQ	$16, SP
-	CALL	runtime·errstr(SB)
+	CALL	runtime·m_errstr(SB)
 	MOVQ	SP, SI
 	ADDQ	$16, SP
-	JMP	copyresult4
-
-ok4:
-	LEAQ	runtime·emptystring(SB), SI
-
-copyresult4:
-	LEAQ	err+80(SP), DI
-
-	CLD
-	MOVSQ
-	MOVSQ
-
+ok2:
+	MOVQ	0(SI), AX
+	MOVQ	8(SI), DX
+	MOVQ	AX, err_base+72(FP)
+	MOVQ	DX, err_len+80(FP)
 	CALL	runtime·exitsyscall(SB)
 	RET
 
-TEXT ·RawSyscall(SB),NOSPLIT,$0-56
-	MOVQ	8(SP), BP	// syscall entry
-	// slide args down on top of system call number
-	LEAQ		16(SP), SI
-	LEAQ		8(SP), DI
-	CLD
-	MOVSQ
-	MOVSQ
-	MOVSQ
+TEXT	·RawSyscall(SB),NOSPLIT,$0-56
+	MOVQ	a1+8(FP), DI
+	MOVQ	a2+16(FP), SI
+	MOVQ	a3+24(FP), DX
+	MOVQ	trap+0(FP), AX
 	SYSCALL
-	MOVQ	AX, r1+40(SP)
-	MOVQ	AX, r2+48(SP)
-	MOVQ	AX, err+56(SP)
+	MOVQ	AX, r1+32(FP)
+	MOVQ	$0, r2+40(FP)
+	MOVQ	$0, err+48(FP)
 	RET
 
 TEXT	·RawSyscall6(SB),NOSPLIT,$0-80
-	MOVQ	8(SP), BP	// syscall entry
-	// slide args down on top of system call number
-	LEAQ		16(SP), SI
-	LEAQ		8(SP), DI
-	CLD
-	MOVSQ
-	MOVSQ
-	MOVSQ
-	MOVSQ
-	MOVSQ
-	MOVSQ
+	MOVQ	a1+8(FP), DI
+	MOVQ	a2+16(FP), SI
+	MOVQ	a3+24(FP), DX
+	MOVQ	a4+32(FP), R10
+	MOVQ	a5+40(FP), R8
+	MOVQ	a6+48(FP), R9
+	MOVQ	trap+0(FP), AX
 	SYSCALL
-	MOVQ	AX, r1+64(SP)
-	MOVQ	AX, r2+72(SP)
-	MOVQ	AX, err+80(SP)
+	MOVQ	AX, r1+56(FP)
+	MOVQ	$0, r2+64(FP)
+	MOVQ	$0, err+72(FP)
 	RET
 
-#define SYS_SEEK 39	/* from zsysnum_plan9_amd64.go */
-
-//func seek(placeholder uintptr, fd int, offset int64, whence int) (newoffset int64, err string)
-TEXT ·seek(SB),NOSPLIT,$0-56
-	LEAQ	newoffset+40(SP), AX
-	MOVQ	AX, placeholder+8(SP)
-
-	MOVQ	$SYS_SEEK, BP	// syscall entry
+TEXT	·Seekcall(SB),NOSPLIT,$0-64
+	CALL	runtime·entersyscall(SB)
+	LEAQ	r1+32(FP), DI
+	MOVQ	a1+8(FP), SI
+	MOVQ	a2+16(FP), DX
+	MOVQ	a3+24(FP), R10
+	MOVQ	trap+0(FP), AX
 	SYSCALL
-
+	MOVQ	$0, r2+40(FP)
+	LEAQ	runtime·emptystring(SB), SI
 	CMPL	AX, $-1
-	JNE	ok6
-	MOVQ	$-1, newoffset+40(SP)
+	JNE	ok3
+
+//	CMPQ	AX, $0xfffffffffffff001
+//	LEAQ	runtime·emptystring(SB), SI
+//	JLS	ok3
+
+	MOVQ	AX, r1+32(FP)
 
 	SUBQ	$16, SP
-	CALL	syscall·errstr(SB)
+	CALL	runtime·m_errstr(SB)
 	MOVQ	SP, SI
 	ADDQ	$16, SP
-	JMP	copyresult6
-
-ok6:
-	LEAQ	runtime·emptystring(SB), SI
-
-copyresult6:
-	LEAQ	err+48(SP), DI
-
-	CLD
-	MOVSQ
-	MOVSQ
+ok3:
+	MOVQ	0(SI), AX
+	MOVQ	8(SI), DX
+	MOVQ	AX, err_base+48(FP)
+	MOVQ	DX, err_len+56(FP)
+	CALL	runtime·exitsyscall(SB)
 	RET
 
 //func exit(code int)

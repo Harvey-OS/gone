@@ -37,17 +37,6 @@ TEXT runtime·pwrite(SB),NOSPLIT,$0
 	MOVL	AX, ret+32(FP)
 	RET
 
-// int32 _seek(int64*, int32, int64, int32)
-TEXT _seek<>(SB),NOSPLIT,$0
-	MOVQ	arg0+0(FP), DI
-	MOVL	arg1+8(FP), SI
-	MOVQ	arg2+16(FP), DX
-	MOVL	arg3+24(FP), R10
-	MOVQ	$4135, AX
-	SYSCALL
-	MOVL	AX, ret+32(FP)
-	RET
-
 TEXT runtime·closefd(SB),NOSPLIT,$0
 	MOVL	arg0+0(FP), DI
 	MOVQ	$3, AX
@@ -97,7 +86,6 @@ TEXT runtime·nsec(SB),NOSPLIT,$0
 	MOVQ	AX, ret+8(FP)
 	RET
 
-
 TEXT runtime·notify(SB),NOSPLIT,$0
 	MOVQ	arg0+0(FP), DI
 	MOVQ	$4124, AX
@@ -128,13 +116,30 @@ TEXT runtime·rfork(SB),NOSPLIT,$0
 	RET
 
 // void errstr(int8 *buf, int32 len)
-TEXT errstr<>(SB),NOSPLIT,$0
+TEXT runtime·errstr(SB),NOSPLIT,$0
 	MOVQ	arg0+0(FP), DI
 	MOVL	arg1+8(FP), SI
 	MOVQ	$4137, AX
 	SYSCALL
 	MOVL	AX, ret+16(FP)
 	RET
+
+TEXT runtime·m_errstr(SB),NOSPLIT,$16-16
+	get_tls(AX)
+	MOVQ	g(AX), BX
+	MOVQ	g_m(BX), BX
+	MOVQ	m_errstr(BX), DI
+	MOVQ	DI, 0(SP)
+	MOVQ	$128, SI		// src/runtime/os2_harvey.go _ERRMAX
+	MOVQ	$4137, AX
+	SYSCALL
+	CALL	runtime·findnull(SB)
+	MOVQ	0(SP), AX
+	MOVQ	8(SP), DX
+	MOVQ	AX, ret_base+0(FP)
+	MOVQ	DX, ret_len+8(FP)
+	RET
+
 
 // setldt(int entry, int address, int limit)
 TEXT runtime·setldt(SB),NOSPLIT,$0
@@ -163,18 +168,16 @@ TEXT time·now(SB),NOSPLIT,$8-12
 // int64 seek(int32, int64, int32)
 // Convenience wrapper around _seek, the actual system call.
 TEXT runtime·seek(SB),NOSPLIT,$32
-	LEAQ	ret+24(FP), AX
-	MOVL	fd+0(FP), BX
-	MOVQ	offset+8(FP), CX
-	MOVL	whence+16(FP), DX
-	MOVQ	AX, 0(SP)
-	MOVL	BX, 8(SP)
-	MOVQ	CX, 16(SP)
-	MOVL	DX, 24(SP)
-	CALL	_seek<>(SB)
-	CMPL	AX, $0
-	JGE	2(PC)
+	LEAQ	ret+24(FP), DI
+	MOVL	fd+0(FP), SI
+	MOVQ	offset+8(FP), DX
+	MOVL	whence+16(FP), R10
+	MOVQ	$4135, AX
+	SYSCALL
+	CMPL	AX, $-1
+	JNE	seekok
 	MOVQ	$-1, ret+24(FP)
+seekok:
 	RET
 
 TEXT runtime·tstart_plan9(SB),NOSPLIT,$0
@@ -266,26 +269,4 @@ TEXT runtime·setfpmasks(SB),NOSPLIT,$8
 	LDMXCSR	0(SP)
 	RET
 
-#define ERRMAX 128	/* from os_plan9.h */
-
-// func errstr() string
-// Only used by package syscall.
-// Grab error string due to a syscall made
-// in entersyscall mode, without going
-// through the allocator (issue 4994).
-// See ../syscall/asm_plan9_amd64.s:/·Syscall/
-TEXT runtime·errstr(SB),NOSPLIT,$16-16
-	get_tls(AX)
-	MOVQ	g(AX), BX
-	MOVQ	g_m(BX), BX
-	MOVQ	m_errstr(BX), CX
-	MOVQ	CX, 0(SP)
-	MOVQ	$ERRMAX, 8(SP)
-	CALL	errstr<>(SB)
-	CALL	runtime·findnull(SB)
-	MOVQ	8(SP), AX
-	MOVQ	AX, ret_len+8(FP)
-	MOVQ	0(SP), AX
-	MOVQ	AX, ret_base+0(FP)
-	RET
 

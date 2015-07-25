@@ -55,9 +55,15 @@ func dirstat(arg interface{}) (*syscall.Dir, error) {
 		case *File:
 			name = a.name
 			n, err = syscall.Fstat(a.fd, buf)
+			if err != nil {
+				return nil, &PathError{"stat", name, err}
+			}
 		case string:
 			name = a
 			n, err = syscall.Stat(a, buf)
+			if err != nil {
+				return nil, &PathError{"stat", name, err}
+			}
 		default:
 			panic("phase error in dirstat")
 		}

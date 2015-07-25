@@ -120,7 +120,9 @@ func initBloc() {
 }
 
 func sbrk(n uintptr) unsafe.Pointer {
-	// Plan 9 sbrk from /sys/src/libc/9sys/sbrk.c
+	if n > 2*1024*1024*1024 { // forces runtime/malloc.go into 32bit mode
+		return nil
+	}
 	bl := bloc
 	n = memRound(n)
 	if brk_(unsafe.Pointer(bl+n)) < 0 {

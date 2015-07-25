@@ -1,6 +1,5 @@
 package runtime
 
-//const _PAGESIZE = 0x1000
 const _PAGESIZE = 0x200000
 
 type ureg struct {
