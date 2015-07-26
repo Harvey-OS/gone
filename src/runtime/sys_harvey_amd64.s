@@ -229,6 +229,7 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 
 	MOVQ	BP, SP
 
+	PUSHQ	AX // alignment
 	PUSHQ	g(AX) // stash g
 	MOVQ	R10, g(AX) // g = m->gsignal
 
@@ -241,6 +242,7 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	POPQ	AX // note
 	POPQ	AX // ureg
 	POPQ	DI // retval
+	POPQ	AX // alignment
 
 	get_tls(AX)
 	POPQ	BX // stashed g
