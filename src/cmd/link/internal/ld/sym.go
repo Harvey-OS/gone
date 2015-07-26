@@ -93,7 +93,7 @@ func linknew(arch *LinkArch) *Link {
 	default:
 		log.Fatalf("unknown thread-local storage offset for %s", Headstr(ctxt.Headtype))
 
-	case obj.Hplan9, obj.Hwindows:
+	case obj.Hplan9, obj.Hwindows, obj.Hharvey:
 		break
 
 		/*
@@ -106,7 +106,6 @@ func linknew(arch *LinkArch) *Link {
 		obj.Hnetbsd,
 		obj.Hopenbsd,
 		obj.Hdragonfly,
-		obj.Hharvey,
 		obj.Hsolaris:
 		ctxt.Tlsoffset = -1 * ctxt.Arch.Ptrsize
 
