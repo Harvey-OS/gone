@@ -218,47 +218,39 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	// check that g exists
 	MOVQ	g(AX), BX
 	CMPQ	BX, $0
-	JNE	3(PC)
-	CALL	runtime·badsignal2(SB) // will exit
-	RET
-
-	// save args
-	MOVQ	ureg+8(SP), CX
-	MOVQ	note+16(SP), DX
+	JEQ sigtramp_badsig1
 
 	// change stack
 	MOVQ	g_m(BX), BX
 	MOVQ	m_gsignal(BX), R10
 	MOVQ	(g_stack+stack_hi)(R10), BP
+	CMPQ	BP, $0
+	JEQ sigtramp_nostack1
+
 	MOVQ	BP, SP
 
-	// make room for args and g
-	SUBQ	$128, SP
+	PUSHQ	g(AX) // stash g
+	MOVQ	R10, g(AX) // g = m->gsignal
 
-	// save g
-	MOVQ	g(AX), BP
-	MOVQ	BP, 32(SP)
+	PUSHQ	AX // retval
+	PUSHQ	DI // ureg
+	PUSHQ	SI // note
+	PUSHQ	BX // gp
+	CALL	runtime·sighandler(SB)// func sighandler(_ureg *ureg, note *byte, gp *g) int
+	POPQ	AX // gp
+	POPQ	AX // note
+	POPQ	AX // ureg
+	POPQ	DI // retval
 
-	// g = m->gsignal
-	MOVQ	R10, g(AX)
-
-	// load args and call sighandler
-	MOVQ	CX, 0(SP)
-	MOVQ	DX, 8(SP)
-	MOVQ	BP, 16(SP)
-
-	CALL	runtime·sighandler(SB)
-	MOVL	24(SP), AX
-
-	// restore g
-	get_tls(BX)
-	MOVQ	32(SP), R10
-	MOVQ	R10, g(BX)
-
-	// call noted(AX)
-	MOVQ	AX, 0(SP)
-	CALL	runtime·noted(SB)
-	RET
+	get_tls(AX)
+	POPQ	BX // stashed g
+	MOVQ	BX, g(AX) // restore g
+	MOVQ	$4125, AX	// syscall noted(int)
+	SYSCALL
+sigtramp_badsig1:
+	CALL	runtime·badsignal1(SB) // will exit
+sigtramp_nostack1:
+	CALL	runtime·badstack1(SB) // will exit
 
 TEXT runtime·setfpmasks(SB),NOSPLIT,$8
 	STMXCSR	0(SP)

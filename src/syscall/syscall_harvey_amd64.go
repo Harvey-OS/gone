@@ -153,17 +153,15 @@ func Pipe(p []int) (err error) {
 }
 
 // Underlying system call writes to newoffset via pointer.
-// Implemented in assembly to avoid allocation.
+// Assembly kept as pastey from Syscall() as possible.
 func Seekcall(trap uintptr, fd int, offset int64, whence int) (r1 int64, r2 uintptr, err ErrorString)
-
-//func seek(placeholder uintptr, fd int, offset int64, whence int) (newoffset int64, err string)
 
 func Seek(fd int, offset int64, whence int) (int64, error) {
 	newoffset, _, err := Seekcall(SYS_SEEK, fd, offset, whence)
 	if newoffset == -1 {
-		return -1, err
+		return newoffset, err
 	}
-	return newoffset, err
+	return newoffset, nil
 }
 
 func Mkdir(path string, mode uint32) (err error) {

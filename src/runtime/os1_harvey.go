@@ -240,13 +240,19 @@ func memlimit() uint64 {
 	return 0
 }
 
-var _badsignal = []byte("runtime: signal received on thread not created by Go.\n")
+var _badsignal1 = []byte("runtime: signal received on thread not created by Go.\n")
+var _badstack1 = []byte("runtime: nil signal stack\n")
 
-// This runs on a foreign stack, without an m or a g.  No stack split.
+// These run on a foreign stack, without an m or a g.  No stack split.
 //go:nosplit
-func badsignal2() {
-	pwrite(2, unsafe.Pointer(&_badsignal[0]), int32(len(_badsignal)), -1)
-	exits(&_badsignal[0])
+func badsignal1() {
+	pwrite(2, unsafe.Pointer(&_badsignal1[0]), int32(len(_badsignal1)), -1)
+	exits(&_badsignal1[0])
+}
+//go:nosplit
+func badstack1() {
+	pwrite(2, unsafe.Pointer(&_badstack1[0]), int32(len(_badstack1)), -1)
+	exits(&_badstack1[0])
 }
 
 func _atoi(b []byte) int {
