@@ -261,8 +261,7 @@ func notetsleepg(n *note, ns int64) bool {
 	if gp.m.waitsema == 0 {
 		gp.m.waitsema = semacreate()
 	}
-	//entersyscallblock(0)
-	entersyscall(0) // FIXME(aki), entersyscallblock fails on harvey?
+	entersyscallblock(0)
 	ok := notetsleep_internal(n, ns, nil, 0)
 	exitsyscall(0)
 	return ok
