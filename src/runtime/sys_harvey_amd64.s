@@ -225,11 +225,16 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	MOVQ	m_gsignal(BX), R10
 	MOVQ	(g_stack+stack_hi)(R10), BP
 	CMPQ	BP, $0
-	JEQ sigtramp_nostack1
+	JEQ sigtramp_badstack1
+
+	// check for 16-alignment of stack
+	MOVQ	BP, DI
+	ANDQ	$-0x10, DI
+	CMPQ	DI, $0
+	JEQ sigtramp_badstack1
 
 	MOVQ	BP, SP
 
-	PUSHQ	AX // alignment
 	PUSHQ	g(AX) // stash g
 	MOVQ	R10, g(AX) // g = m->gsignal
 
@@ -242,7 +247,6 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	POPQ	AX // note
 	POPQ	AX // ureg
 	POPQ	DI // retval
-	POPQ	AX // alignment
 
 	get_tls(AX)
 	POPQ	BX // stashed g
@@ -251,7 +255,7 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	SYSCALL
 sigtramp_badsig1:
 	CALL	runtime·badsignal1(SB) // will exit
-sigtramp_nostack1:
+sigtramp_badstack1:
 	CALL	runtime·badstack1(SB) // will exit
 
 TEXT runtime·setfpmasks(SB),NOSPLIT,$8
