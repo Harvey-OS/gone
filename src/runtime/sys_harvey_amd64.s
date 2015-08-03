@@ -223,8 +223,8 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	JEQ sigtramp_badsig1
 
 	// change stack
-	MOVQ	g_m(BX), BX
-	MOVQ	m_gsignal(BX), R10
+	MOVQ	g_m(BX), DX
+	MOVQ	m_gsignal(DX), R10
 	MOVQ	(g_stack+stack_hi)(R10), BP
 	CMPQ	BP, $0
 	JEQ sigtramp_badstack1
