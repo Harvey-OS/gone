@@ -240,10 +240,16 @@ func memlimit() uint64 {
 	return 0
 }
 
+var _badtls1 = []byte("runtime: signal received but tls bad\n")
 var _badsignal1 = []byte("runtime: signal received on thread not created by Go.\n")
 var _badstack1 = []byte("runtime: nil signal stack\n")
 
 // These run on a foreign stack, without an m or a g.  No stack split.
+//go:nosplit
+func badtls1() {
+	pwrite(2, unsafe.Pointer(&_badtls1[0]), int32(len(_badtls1)), -1)
+	exits(&_badtls1[0])
+}
 //go:nosplit
 func badsignal1() {
 	pwrite(2, unsafe.Pointer(&_badsignal1[0]), int32(len(_badsignal1)), -1)

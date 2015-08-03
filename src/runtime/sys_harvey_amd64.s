@@ -214,6 +214,8 @@ TEXT runtime·settls(SB),NOSPLIT,$0
 // void sigtramp(void *ureg, int8 *note)
 TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	get_tls(AX)
+	CMPQ	AX, $0
+	JEQ sigtramp_badtls1
 
 	// check that g exists
 	MOVQ	g(AX), BX
@@ -228,9 +230,9 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	JEQ sigtramp_badstack1
 
 	// check for 16-alignment of stack
-	MOVQ	BP, DI
-	ANDQ	$-0x10, DI
-	CMPQ	DI, $0
+	MOVQ	BP, DX
+	ANDQ	$-0x10, DX
+	CMPQ	DX, $0
 	JEQ sigtramp_badstack1
 
 	MOVQ	BP, SP
@@ -239,20 +241,22 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	MOVQ	R10, g(AX) // g = m->gsignal
 
 	PUSHQ	AX // retval
-	PUSHQ	DI // ureg
-	PUSHQ	SI // note
 	PUSHQ	BX // gp
+	PUSHQ	SI // note
+	PUSHQ	DI // ureg
 	CALL	runtime·sighandler(SB)// func sighandler(_ureg *ureg, note *byte, gp *g) int
-	POPQ	AX // gp
-	POPQ	AX // note
 	POPQ	AX // ureg
-	POPQ	DI // retval
+	POPQ	AX // note
+	POPQ	AX // gp
+	POPQ	DI // retval -> DI (syscall first arg)
 
 	get_tls(AX)
 	POPQ	BX // stashed g
 	MOVQ	BX, g(AX) // restore g
 	MOVQ	$4125, AX	// syscall noted(int)
 	SYSCALL
+sigtramp_badtls1:
+	CALL	runtime·badtls1(SB) // will exit
 sigtramp_badsig1:
 	CALL	runtime·badsignal1(SB) // will exit
 sigtramp_badstack1:
