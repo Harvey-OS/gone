@@ -15,7 +15,6 @@ const (
 	SYS_SEGBRK      = 4108
 	SYS_OPEN        = 2
 	SYS_OSEEK       = 4112
-	SYS_SLEEP       = 4113
 	SYS_RFORK       = 4115
 	SYS_PIPE        = 4117
 	SYS_CREATE      = 4118
