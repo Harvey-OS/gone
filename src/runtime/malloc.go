@@ -147,7 +147,7 @@ const (
 	//   windows/64       | 8KB        | 2
 	//   plan9            | 4KB        | 3
 	//   harvey           | 4KB        | 3
-	_NumStackOrders = 4 - sys.PtrSize/4*sys.GoosWindows - 1*sys.GoosPlan9 - 1*goos_harvey
+	_NumStackOrders = 4 - sys.PtrSize/4*sys.GoosWindows - 1*sys.GoosPlan9 - 1*sys.GoosHarvey
 
 	// Number of bits in page to span calculations (4k pages).
 	// On Windows 64-bit we limit the arena to 32GB or 35 bits.
@@ -815,8 +815,8 @@ func profilealloc(mp *m, x unsafe.Pointer, size uintptr) {
 // distributed random number and applying the cumulative distribution
 // function for an exponential.
 func nextSample() int32 {
-	if GOOS == "plan9" {
-		// Plan 9 doesn't support floating point in note handler.
+	if GOOS == "plan9" || GOOS == "harvey" {
+		// Plan 9 and harvey don't support floating point in note handler.
 		if g := getg(); g == g.m.gsignal {
 			return nextSampleNoFP()
 		}
