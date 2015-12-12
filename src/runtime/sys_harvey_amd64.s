@@ -122,7 +122,7 @@ TEXT runtime·m_errstr(SB),NOSPLIT,$16-16
 	get_tls(AX)
 	MOVQ	g(AX), BX
 	MOVQ	g_m(BX), BX
-	MOVQ	m_errstr(BX), DI
+	MOVQ	(m_mOS+mOS_errstr)(BX), DI
 	MOVQ	DI, 0(SP)
 	MOVQ	$128, SI		// src/runtime/os2_harvey.go _ERRMAX
 	MOVQ	$4137, AX
@@ -255,12 +255,14 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	MOVQ	BX, g(AX) // restore g
 	MOVQ	$4125, AX	// syscall noted(int)
 	SYSCALL
+// TODO: FIX ME
 sigtramp_badtls1:
-	CALL	runtime·badtls1(SB) // will exit
+	//CALL	runtime·badtls1(SB) // will exit
 sigtramp_badsig1:
-	CALL	runtime·badsignal1(SB) // will exit
+	//CALL	runtime·badsignal1(SB) // will exit
 sigtramp_badstack1:
-	CALL	runtime·badstack1(SB) // will exit
+	//CALL	runtime·badstack1(SB) // will exit
+	JMP sigtramp_badstack1
 
 TEXT runtime·setfpmasks(SB),NOSPLIT,$8
 	STMXCSR	0(SP)

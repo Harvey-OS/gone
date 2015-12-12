@@ -66,10 +66,9 @@ const (
 	// Notes in runtime·sigtab that are handled by runtime·sigpanic.
 	_SIGRFAULT = 2
 	_SIGWFAULT = 3
-	_SIGXFAULT = 4
-	_SIGINTDIV = 5
-	_SIGFLOAT  = 6
-	_SIGTRAP   = 7
+	_SIGINTDIV = 4
+	_SIGFLOAT  = 5
+	_SIGTRAP   = 6
 	_SIGPROF   = 0 // dummy value defined for badsignal
 	_SIGQUIT   = 0 // dummy value defined for sighandler
 )

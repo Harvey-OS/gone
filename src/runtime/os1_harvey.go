@@ -4,7 +4,10 @@
 
 package runtime
 
-import "unsafe"
+import (
+	"runtime/internal/atomic"
+	"unsafe"
+)
 
 type sigset struct{}
 
@@ -21,6 +24,12 @@ func mpreinit(mp *m) {
 }
 
 func msigsave(mp *m) {
+}
+
+func msigrestore(mp *m) {
+}
+
+func sigblock() {
 }
 
 // Called to initialize a new m (including the bootstrap m).
@@ -134,7 +143,7 @@ func goexitsall(status *byte) {
 	n := copy(buf[:], goexits)
 	n = copy(buf[n:], gostringnocopy(status))
 	pid := getpid()
-	for mp := (*m)(atomicloadp(unsafe.Pointer(&allm))); mp != nil; mp = mp.alllink {
+	for mp := (*m)(atomic.Loadp(unsafe.Pointer(&allm))); mp != nil; mp = mp.alllink {
 		if mp.procid != pid {
 			postnote(mp.procid, buf[:])
 		}
@@ -155,7 +164,7 @@ func postnote(pid uint64, msg []byte) int {
 		return -1
 	}
 	len := findnull(&msg[0])
-	if write(uintptr(fd), (unsafe.Pointer)(&msg[0]), int32(len)) != int64(len) {
+	if write(uintptr(fd), unsafe.Pointer(&msg[0]), int32(len)) != int64(len) {
 		closefd(fd)
 		return -1
 	}
@@ -193,14 +202,7 @@ func newosproc(mp *m, stk unsafe.Pointer) {
 }
 
 //go:nosplit
-func semablip() {
-	_g_ := getg()
-	print("semablip: &_g_.m.waitsemacount = ", unsafe.Pointer(&_g_.m.waitsemacount), "\n")
-}
-
-//go:nosplit
-func semacreate() uintptr {
-	return 1
+func semacreate(mp *m) {
 }
 
 //go:nosplit
@@ -242,25 +244,17 @@ func memlimit() uint64 {
 	return 0
 }
 
-var _badtls1 = []byte("runtime: signal received but tls bad\n")
-var _badsignal1 = []byte("runtime: signal received on thread not created by Go.\n")
-var _badstack1 = []byte("runtime: nil signal stack\n")
+var _badsignal = []byte("runtime: signal received on thread not created by Go.\n")
 
-// These run on a foreign stack, without an m or a g.  No stack split.
+// This runs on a foreign stack, without an m or a g.  No stack split.
 //go:nosplit
-func badtls1() {
-	pwrite(2, unsafe.Pointer(&_badtls1[0]), int32(len(_badtls1)), -1)
-	exits(&_badtls1[0])
+func badsignal2() {
+	pwrite(2, unsafe.Pointer(&_badsignal[0]), int32(len(_badsignal)), -1)
+	exits(&_badsignal[0])
 }
-//go:nosplit
-func badsignal1() {
-	pwrite(2, unsafe.Pointer(&_badsignal1[0]), int32(len(_badsignal1)), -1)
-	exits(&_badsignal1[0])
-}
-//go:nosplit
-func badstack1() {
-	pwrite(2, unsafe.Pointer(&_badstack1[0]), int32(len(_badstack1)), -1)
-	exits(&_badstack1[0])
+
+func raisebadsignal(sig int32) {
+	badsignal2()
 }
 
 func _atoi(b []byte) int {
