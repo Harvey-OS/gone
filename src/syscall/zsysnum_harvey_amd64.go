@@ -4,8 +4,6 @@
 package syscall
 
 const (
-	SYS_SYSR1       = 4096
-	SYS__ERRSTR     = 4097
 	SYS_BIND        = 4098
 	SYS_CHDIR       = 4099
 	SYS_CLOSE       = 3
@@ -13,25 +11,17 @@ const (
 	SYS_ALARM       = 4102
 	SYS_EXEC        = 4103
 	SYS_EXITS       = 4104
-	SYS__FSESSION   = 4105
 	SYS_FAUTH       = 4106
-	SYS__FSTAT      = 4107
 	SYS_SEGBRK      = 4108
-	SYS__MOUNT      = 4109
 	SYS_OPEN        = 2
-	SYS_READ        = 0
 	SYS_OSEEK       = 4112
 	SYS_SLEEP       = 4113
-	SYS__STAT       = 4114
 	SYS_RFORK       = 4115
-	SYS_WRITE       = 1
 	SYS_PIPE        = 4117
 	SYS_CREATE      = 4118
 	SYS_FD2PATH     = 4119
 	SYS_BRK_        = 4120
 	SYS_REMOVE      = 4121
-	SYS__WSTAT      = 4122
-	SYS__FWSTAT     = 4123
 	SYS_NOTIFY      = 4124
 	SYS_NOTED       = 4125
 	SYS_SEGATTACH   = 4126
@@ -40,7 +30,6 @@ const (
 	SYS_SEGFLUSH    = 4129
 	SYS_RENDEZVOUS  = 4130
 	SYS_UNMOUNT     = 4131
-	SYS__WAIT       = 4132
 	SYS_SEMACQUIRE  = 4133
 	SYS_SEMRELEASE  = 4134
 	SYS_SEEK        = 4135
@@ -60,7 +49,6 @@ const (
 	SYS_SEMWAKEUP   = 4151
 	SYS_SEMALT      = 4152
 	SYS_EXECAC      = 4153
-	SYS_NIXSYSCALL  = 4154
 	SYS_ZIOPREAD    = 4155
 	SYS_ZIOPWRITE   = 4156
 	SYS_ZIOFREE     = 4157
