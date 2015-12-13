@@ -11,11 +11,11 @@ type sigTabT struct {
 
 // Incoming notes are compared against this table using strncmp, so the
 // order matters: longer patterns must appear before their prefixes.
-// There are _SIG constants in os2_plan9.go for the table index of some
+// There are _SIG constants in os2_harvey.go for the table index of some
 // of these.
 //
 // If you add entries to this table, you must respect the prefix ordering
-// and also update the constant values is os2_plan9.go.
+// and also update the constant values is os2_harvey.go.
 var sigtable = [...]sigTabT{
 	// Traps that we cannot be recovered.
 	{_SigThrow, "sys: trap: debug exception"},

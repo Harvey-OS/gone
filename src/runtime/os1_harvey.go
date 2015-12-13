@@ -197,7 +197,7 @@ func newosproc(mp *m, stk unsafe.Pointer) {
 		throw("newosproc: rfork failed")
 	}
 	if pid == 0 {
-		tstart_plan9(mp)
+		tstart_harvey(mp)
 	}
 }
 
@@ -213,13 +213,13 @@ func semasleep(ns int64) int {
 		if ms == 0 {
 			ms = 1
 		}
-		ret := plan9_tsemacquire(&_g_.m.waitsemacount, ms)
+		ret := harvey_tsemacquire(&_g_.m.waitsemacount, ms)
 		if ret == 1 {
 			return 0 // success
 		}
 		return -1 // timeout or interrupted
 	}
-	for plan9_semacquire(&_g_.m.waitsemacount, 1) < 0 {
+	for harvey_semacquire(&_g_.m.waitsemacount, 1) < 0 {
 		// interrupted; try again (c.f. lock_sema.go)
 	}
 	return 0 // success
@@ -227,7 +227,7 @@ func semasleep(ns int64) int {
 
 //go:nosplit
 func semawakeup(mp *m) {
-	plan9_semrelease(&mp.waitsemacount, 1)
+	harvey_semrelease(&mp.waitsemacount, 1)
 }
 
 //go:nosplit

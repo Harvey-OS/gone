@@ -36,13 +36,13 @@ func sleep(ms int32) int32
 func rfork(flags int32) int32
 
 //go:noescape
-func plan9_semacquire(addr *uint32, block int32) int32
+func harvey_semacquire(addr *uint32, block int32) int32
 
 //go:noescape
-func plan9_tsemacquire(addr *uint32, ms int32) int32
+func harvey_tsemacquire(addr *uint32, ms int32) int32
 
 //go:noescape
-func plan9_semrelease(addr *uint32, count int32) int32
+func harvey_semrelease(addr *uint32, count int32) int32
 
 //go:noescape
 func nanotime() int64
@@ -60,7 +60,7 @@ func sigtramp(ureg, msg unsafe.Pointer)
 func setfpmasks()
 
 //go:noescape
-func tstart_plan9(newm *m)
+func tstart_harvey(newm *m)
 
 func errstr() string
 
