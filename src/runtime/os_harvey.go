@@ -31,7 +31,20 @@ func exits(msg *byte)
 //go:noescape
 func brk_(addr unsafe.Pointer) int32
 
-func sleep(ms int32) int32
+func awake(int64) int64
+func rendezvous(*int64, int64) uint64
+
+func awakened(w int64) bool {
+	return w > awake(0)
+}
+
+func sleep(ms int32) int32 {
+	w := awake(ms)
+	for awakened(w) && rendezvous(&w, 1) == 0 {
+	}
+	// hmm. 
+	return 0
+}
 
 func rfork(flags int32) int32
 

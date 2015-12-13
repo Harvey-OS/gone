@@ -17,6 +17,14 @@ TEXT runtime·open(SB),NOSPLIT,$0
 	MOVL	AX, ret+16(FP)
 	RET
 
+TEXT runtime·rendezvous(SB),NOSPLIT,$0
+	MOVL	arg0+0(FP), DI
+	MOVQ	arg1+8(FP), SI
+	MOVQ	$4130, AX
+	SYSCALL
+	MOVL	AX, ret+32(FP)
+	RET
+
 TEXT runtime·pread(SB),NOSPLIT,$0
 	MOVL	arg0+0(FP), DI
 	MOVQ	arg1+8(FP), SI
@@ -57,9 +65,9 @@ TEXT runtime·brk_(SB),NOSPLIT,$0
 	MOVQ	AX, ret+8(FP)
 	RET
 
-TEXT runtime·sleep(SB),NOSPLIT,$0
+TEXT runtime·awake(SB),NOSPLIT,$0
 	MOVL	arg0+0(FP), DI
-	MOVQ	$4113, AX
+	MOVQ	$4158, AX
 	SYSCALL
 	MOVL	AX, ret+8(FP)
 	RET
