@@ -43,14 +43,6 @@ const (
 type uinptr _Plink
 
 type tos struct {
-	prof struct { // Per process profiling
-		pp    *_Plink // known to be 0(ptr)
-		next  *_Plink // known to be 4(ptr)
-		last  *_Plink
-		first *_Plink
-		pid   uint32
-		what  uint32
-	}
 	cyclefreq uint64 // cycle clock frequency if there is one, 0 otherwise
 	kcycles   int64  // cycles spent in kernel
 	pcycles   int64  // cycles spent in process (kernel + user)

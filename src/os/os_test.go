@@ -720,7 +720,7 @@ func TestSymlink(t *testing.T) {
 
 func TestLongSymlink(t *testing.T) {
 	switch runtime.GOOS {
-	case "android", "plan9", "nacl":
+	case "android", "plan9", "harvey", "nacl":
 		t.Skipf("skipping on %s", runtime.GOOS)
 	case "windows":
 		if !supportsSymlinks {
