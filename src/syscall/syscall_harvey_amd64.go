@@ -152,16 +152,12 @@ func Pipe(p []int) (err error) {
 	return
 }
 
-// Underlying system call writes to newoffset via pointer.
-// Assembly kept as pastey from Syscall() as possible.
-func Seekcall(trap uintptr, fd int, offset int64, whence int) (r1 int64, r2 uintptr, err ErrorString)
-
 func Seek(fd int, offset int64, whence int) (int64, error) {
-	newoffset, _, err := Seekcall(SYS_SEEK, fd, offset, whence)
-	if newoffset == -1 {
-		return newoffset, err
+	newoffset, _, err := Syscall(SYS_SEEK, uintptr(fd), uintptr(offset), uintptr(whence))
+	if int64(newoffset) == -1 {
+		return -1, err
 	}
-	return newoffset, nil
+	return int64(newoffset), nil
 }
 
 func Mkdir(path string, mode uint32) (err error) {
