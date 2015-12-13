@@ -31,7 +31,10 @@ func exits(msg *byte)
 //go:noescape
 func brk_(addr unsafe.Pointer) int32
 
+//go:noescape
 func awake(int64) int64
+
+//go:noescape
 func rendezvous(*int64, int64) uint64
 
 func awakened(w int64) bool {
@@ -39,7 +42,8 @@ func awakened(w int64) bool {
 }
 
 func sleep(ms int32) int32 {
-	w := awake(ms)
+	var w int64
+	w = awake(int64(ms))
 	for awakened(w) && rendezvous(&w, 1) == 0 {
 	}
 	// hmm. 
