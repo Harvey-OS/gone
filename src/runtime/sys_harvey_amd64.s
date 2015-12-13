@@ -64,7 +64,7 @@ TEXT runtime·sleep(SB),NOSPLIT,$0
 	MOVL	AX, ret+8(FP)
 	RET
 
-TEXT runtime·plan9_semacquire(SB),NOSPLIT,$0
+TEXT runtime·harvey_semacquire(SB),NOSPLIT,$0
 	MOVQ	arg0+0(FP), DI
 	MOVL	arg1+8(FP), SI
 	MOVQ	$4133, AX
@@ -72,7 +72,7 @@ TEXT runtime·plan9_semacquire(SB),NOSPLIT,$0
 	MOVL	AX, ret+16(FP)
 	RET
 
-TEXT runtime·plan9_tsemacquire(SB),NOSPLIT,$0
+TEXT runtime·harvey_tsemacquire(SB),NOSPLIT,$0
 	MOVQ	arg0+0(FP), DI
 	MOVL	arg1+8(FP), SI
 	MOVQ	$4148, AX
@@ -94,7 +94,7 @@ TEXT runtime·noted(SB),NOSPLIT,$0
 	MOVL	AX, ret+8(FP)
 	RET
 
-TEXT runtime·plan9_semrelease(SB),NOSPLIT,$0
+TEXT runtime·harvey_semrelease(SB),NOSPLIT,$0
 	MOVQ	arg0+0(FP), DI
 	MOVL	arg1+8(FP), SI
 	MOVQ	$4134, AX
@@ -180,7 +180,7 @@ TEXT runtime·seek(SB),NOSPLIT,$32
 seekok:
 	RET
 
-TEXT runtime·tstart_plan9(SB),NOSPLIT,$0
+TEXT runtime·tstart_harvey(SB),NOSPLIT,$0
 	MOVQ	newm+0(FP), CX
 	MOVQ	m_g0(CX), DX
 
@@ -194,7 +194,7 @@ TEXT runtime·tstart_plan9(SB),NOSPLIT,$0
 
 	// Initialize procid from TOS struct.
 	MOVQ	_tos(SB), AX
-	MOVL	64(AX), AX
+	MOVL	0x18(AX), AX
 	MOVQ	AX, m_procid(CX)	// save pid as m->procid
 
 	// Finally, initialize g.
