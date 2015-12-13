@@ -4064,7 +4064,7 @@ func doasm(ctxt *obj.Link, p *obj.Prog) {
 									0x8B)
 								asmand(ctxt, p, &pp.From, &p.To)
 							}
-						case obj.Hplan9:
+						case obj.Hplan9, obj.Hharvey:
 							if ctxt.Plan9privates == nil {
 								ctxt.Plan9privates = obj.Linklookup(ctxt, "_privates", 0)
 							}
