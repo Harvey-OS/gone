@@ -22,7 +22,7 @@ TEXT runtime·rendezvous(SB),NOSPLIT,$0
 	MOVQ	arg1+8(FP), SI
 	MOVQ	$4130, AX
 	SYSCALL
-	MOVL	AX, ret+32(FP)
+	MOVL	AX, ret+16(FP)
 	RET
 
 TEXT runtime·pread(SB),NOSPLIT,$0
