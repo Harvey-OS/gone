@@ -32,23 +32,10 @@ func exits(msg *byte)
 func brk_(addr unsafe.Pointer) int32
 
 //go:noescape
-func awake(int64) int64
-
-//go:noescape
 func rendezvous(*int64, int64) uint64
 
-func awakened(w int64) bool {
-	return w > awake(0)
-}
-
-func sleep(ms int32) int32 {
-	var w int64
-	w = awake(int64(ms))
-	for awakened(w) && rendezvous(&w, 1) == 0 {
-	}
-	// hmm. 
-	return 0
-}
+//go:noescape
+func sleep(ms int32) int32
 
 func rfork(flags int32) int32
 
@@ -63,6 +50,7 @@ func harvey_semrelease(addr *uint32, count int32) int32
 
 //go:noescape
 func nanotime() int64
+
 //go:noescape
 func notify(fn unsafe.Pointer) int32
 

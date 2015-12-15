@@ -65,9 +65,9 @@ TEXT runtime·brk_(SB),NOSPLIT,$0
 	MOVQ	AX, ret+8(FP)
 	RET
 
-TEXT runtime·awake(SB),NOSPLIT,$0
+TEXT runtime·sleep(SB),NOSPLIT,$0
 	MOVL	arg0+0(FP), DI
-	MOVQ	$4158, AX
+	MOVQ	$4113, AX
 	SYSCALL
 	MOVL	AX, ret+8(FP)
 	RET

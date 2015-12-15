@@ -24,7 +24,7 @@ var sigtable = [...]sigTabT{
 	// We can recover from some memory errors in runtime·sigpanic.
 	{_SigPanic, "sys: trap: fault read addr"},  // SIGRFAULT
 	{_SigPanic, "sys: trap: fault write addr"}, // SIGWFAULT
-	{_SigPanic, "sys: trap: fault exec addr"}, // SIGXFAULT
+	{_SigPanic, "sys: trap: fault exec addr"},  // SIGXFAULT
 
 	// We can also recover from math errors.
 	{_SigPanic, "sys: trap: divide error"}, // SIGINTDIV
