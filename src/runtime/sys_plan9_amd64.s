@@ -48,7 +48,7 @@ TEXT runtime·seek(SB),NOSPLIT,$32
 	CALL	_seek<>(SB)
 	CMPL	AX, $0
 	JGE	2(PC)
-	MOVQ	$-1, ret+24(FP)z
+	MOVQ	$-1, ret+24(FP)
 	RET
 
 TEXT runtime·closefd(SB),NOSPLIT,$0
