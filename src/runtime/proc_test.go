@@ -256,12 +256,6 @@ func TestTimerFairness(t *testing.T) {
 }
 
 func TestTimerFairness2(t *testing.T) {
-	// harvey is blocking on the 0 byte read of fd 0. I don't know what's
-	// supposed to happen here.
-	if runtime.GOOS == "harvey" {
-		t.Logf("Skipping TestTimerFairness2 on harvey")
-		return
-	}
 	done := make(chan bool)
 	c := make(chan bool)
 	for i := 0; i < 2; i++ {
