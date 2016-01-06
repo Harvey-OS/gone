@@ -1,4 +1,4 @@
 git checkout master
 git pull https://github.com/golang/go.git master
 git commit -s -a
-git push origin master
+git push fork master
