@@ -257,6 +257,9 @@ func TestNoHelperGoroutines(t *testing.T) {
 }
 
 func TestBreakpoint(t *testing.T) {
+	if runtime.GOOS == "harvey" {
+		t.Skip("Skipping")
+	}
 	output := runTestProg(t, "testprog", "Breakpoint")
 	want := "runtime.Breakpoint()"
 	if !strings.Contains(output, want) {

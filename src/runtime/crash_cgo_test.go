@@ -42,7 +42,7 @@ func TestCgoTraceback(t *testing.T) {
 }
 
 func TestCgoCallbackGC(t *testing.T) {
-	if runtime.GOOS == "plan9" || runtime.GOOS == "windows" {
+	if runtime.GOOS == "plan9" || runtime.GOOS == "harvey" || runtime.GOOS == "windows" {
 		t.Skipf("no pthreads on %s", runtime.GOOS)
 	}
 	if testing.Short() {
@@ -107,7 +107,7 @@ func TestCgoExternalThreadSIGPROF(t *testing.T) {
 func TestCgoExternalThreadSignal(t *testing.T) {
 	// issue 10139
 	switch runtime.GOOS {
-	case "plan9", "windows":
+	case "plan9", "harvey", "windows":
 		t.Skipf("no pthreads on %s", runtime.GOOS)
 	}
 	got := runTestProg(t, "testprogcgo", "CgoExternalThreadSignal")
