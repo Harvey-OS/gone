@@ -49,7 +49,7 @@ func mkEnv() []envVar {
 		{"TERM", "dumb"},
 	}
 
-	if goos != "plan9" {
+	if goos != "plan9" && goos != "harvey" {
 		cmd := b.gccCmd(".")
 		env = append(env, envVar{"CC", cmd[0]})
 		env = append(env, envVar{"GOGCCFLAGS", strings.Join(cmd[3:], " ")})

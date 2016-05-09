@@ -147,3 +147,6 @@ func atolwhex(p string) int64 {
 	}
 	return n
 }
+
+type sigset struct{}
+
