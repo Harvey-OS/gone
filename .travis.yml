@@ -3,4 +3,4 @@ before_install:
   - git clone https://github.com/golang/go.git /home/travis/go1.4
   - cd /home/travis/go1.4; git checkout release-branch.go1.4
 script:
-  - cd $TRAVIS_BUILD_DIR/src; GOOS=harvey ./make.bash
+  - cd $TRAVIS_BUILD_DIR/src; GOOS=harvey ./bootstrap.bash
