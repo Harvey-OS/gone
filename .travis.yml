@@ -1,4 +1,4 @@
-language: go
+language: c
 before_install:
   - git clone https://github.com/golang/go.git /home/travis/go1.4
   - cd /home/travis/go1.4; git checkout release-branch.go1.4
