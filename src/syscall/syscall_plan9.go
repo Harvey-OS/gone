@@ -151,19 +151,6 @@ func Pipe(p []int) (err error) {
 	return
 }
 
-// Underlying system call writes to newoffset via pointer.
-// Implemented in assembly to avoid allocation.
-func seek(placeholder uintptr, fd int, offset int64, whence int) (newoffset int64, err string)
-
-func Seek(fd int, offset int64, whence int) (newoffset int64, err error) {
-	newoffset, e := seek(0, fd, offset, whence)
-
-	if newoffset == -1 {
-		err = NewError(e)
-	}
-	return
-}
-
 func Mkdir(path string, mode uint32) (err error) {
 	// If path exists and is not a directory, Create will fail silently.
 	// Work around this by rejecting Mkdir if path exists.
@@ -373,3 +360,4 @@ func Wstat(path string, edir []byte) (err error) {
 //sys	Close(fd int) (err error)
 //sys	Fstat(fd int, edir []byte) (n int, err error)
 //sys	Fwstat(fd int, edir []byte) (err error)
+//sys	Seek(fd int, offset int64, whence int) (off int64, err error)
