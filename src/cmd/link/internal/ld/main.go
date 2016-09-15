@@ -85,7 +85,7 @@ var (
 	flagInterpreter = flag.String("I", "", "use `linker` as ELF dynamic linker")
 	FlagDebugTramp  = flag.Int("debugtramp", 0, "debug trampolines")
 
-	FlagRound       = flag.Int("R", -1, "set address rounding `quantum`")
+	FlagRound       = flag.Int("R", 0x200000/*-1*/, "set address rounding `quantum`")
 	FlagTextAddr    = flag.Int64("T", -1, "set text segment `address`")
 	FlagDataAddr    = flag.Int64("D", -1, "set data segment `address`")
 	flagEntrySymbol = flag.String("E", "", "set `entry` symbol name")
@@ -160,7 +160,7 @@ func Main(arch *sys.Arch, theArch Arch) {
 	libinit(ctxt) // creates outfile
 
 	if ctxt.HeadType == objabi.Hunknown {
-		ctxt.HeadType.Set(objabi.GOOS)
+		ctxt.HeadType.Set("linux") //objabi.GOOS)
 	}
 
 	ctxt.computeTLSOffset()
