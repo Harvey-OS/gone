@@ -181,8 +181,8 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	RET
 
 	// save args
-	MOVQ	ureg+0(FP), CX
-	MOVQ	note+8(FP), DX
+	MOVQ	DI, CX
+	MOVQ	SI, DX
 
 	// change stack
 	MOVQ	g_m(BX), BX
