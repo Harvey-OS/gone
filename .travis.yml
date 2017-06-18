@@ -1,0 +1,19 @@
+language: go
+
+go:
+  - 1.8
+
+env:
+  global:
+    - GOROOT_BOOTSTRAP="/home/travis/.gimme/versions/go1.8.linux.amd64"
+
+before_install:
+ - echo "no"
+install:
+ - echo "no"
+
+before_script:
+ - cd $TRAVIS_BUILD_DIR/src
+
+script:
+ - GOOS=harvey GOARCH=amd64 ./make.bash 
