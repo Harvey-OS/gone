@@ -1493,6 +1493,9 @@ func (ctxt *Context) match(name string, allTags map[string]bool) bool {
 	if ctxt.GOOS == "android" && name == "linux" {
 		return true
 	}
+	if ctxt.GOOS == "harvey" && name == "plan9" {
+		return true
+	}
 
 	// other tags
 	for _, tag := range ctxt.BuildTags {
@@ -1555,6 +1558,9 @@ func (ctxt *Context) goodOSArchFile(name string, allTags map[string]bool) bool {
 		if ctxt.GOOS == "android" && l[n-2] == "linux" {
 			return true
 		}
+		if ctxt.GOOS == "harvey" && l[n-2] == "plan9" {
+			return true
+		}
 		return l[n-2] == ctxt.GOOS
 	}
 	if n >= 1 && knownOS[l[n-1]] {
@@ -1562,6 +1568,9 @@ func (ctxt *Context) goodOSArchFile(name string, allTags map[string]bool) bool {
 			allTags[l[n-1]] = true
 		}
 		if ctxt.GOOS == "android" && l[n-1] == "linux" {
+			return true
+		}
+		if ctxt.GOOS == "harvey" && l[n-1] == "plan9" {
 			return true
 		}
 		return l[n-1] == ctxt.GOOS
