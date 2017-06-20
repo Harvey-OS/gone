@@ -49,6 +49,9 @@ func main() {
 		if target == "linux" {
 			fmt.Fprintf(&buf, "// +build !android\n\n") // must explicitly exclude android for linux
 		}
+		if target == "plan9" {
+			fmt.Fprintf(&buf, "// +build !harvey\n\n") // must explicitly exclude android for linux
+		}
 		fmt.Fprintf(&buf, "package sys\n\n")
 		fmt.Fprintf(&buf, "const GOOS = `%s`\n\n", target)
 		for _, goos := range gooses {
