@@ -57,7 +57,7 @@ func (h *HeadType) Set(s string) error {
 		*h = Hdragonfly
 	case "freebsd":
 		*h = Hfreebsd
-	case "linux", "android":
+	case "linux", "android", "harvey":
 		*h = Hlinux
 	case "nacl":
 		*h = Hnacl

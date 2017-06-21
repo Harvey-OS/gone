@@ -2,13 +2,13 @@
 
 package sys
 
-const GOOS = `darwin`
+const GOOS = `harvey`
 
 const GoosAndroid = 0
-const GoosDarwin = 1
+const GoosDarwin = 0
 const GoosDragonfly = 0
 const GoosFreebsd = 0
-const GoosHarvey = 0
+const GoosHarvey = 1
 const GoosLinux = 0
 const GoosNacl = 0
 const GoosNetbsd = 0

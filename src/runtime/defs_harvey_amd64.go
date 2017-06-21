@@ -1,5 +1,3 @@
-// +build !harvey
-
 package runtime
 
 const _PAGESIZE = 0x1000
@@ -20,11 +18,6 @@ type ureg struct {
 	r13 uint64
 	r14 uint64
 	r15 uint64
-
-	ds uint16
-	es uint16
-	fs uint16
-	gs uint16
 
 	_type uint64
 	error uint64 /* error code (or zero) */
@@ -72,8 +65,6 @@ func dumpregs(u *ureg) {
 	print("ip    ", hex(u.ip), "\n")
 	print("flags ", hex(u.flags), "\n")
 	print("cs    ", hex(u.cs), "\n")
-	print("fs    ", hex(u.fs), "\n")
-	print("gs    ", hex(u.gs), "\n")
 }
 
 func sigpanictramp() {}
