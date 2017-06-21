@@ -2,8 +2,6 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// +build !harvey
-
 #include "go_asm.h"
 #include "go_tls.h"
 #include "textflag.h"
@@ -12,84 +10,90 @@
 TEXT runtime·setldt(SB),NOSPLIT,$0
 	RET
 
-TEXT runtime·open(SB),NOSPLIT,$0
-	MOVQ	$14, BP
+TEXT runtime·open(SB),NOSPLIT,$0-20
+	MOVQ	name+0(FP), DI
+	MOVL	mode+8(FP), SI
+	MOVL	perm+12(FP), DX
+	MOVL	$14, AX			// syscall entry
 	SYSCALL
-	MOVL	AX, ret+16(FP)
+	MOVQ	AX, ret+16(FP)
 	RET
 
 TEXT runtime·pread(SB),NOSPLIT,$0
-	MOVQ	$50, BP
+	MOVL	a0+0(FP), DI
+	MOVQ	a1+8(FP), SI
+	MOVL	a2+16(FP), DX
+	MOVQ	a3+24(FP), R10
+	MOVQ	$50, AX
 	SYSCALL
-	MOVL	AX, ret+32(FP)
+	MOVQ	AX, ret+32(FP)
 	RET
 
 TEXT runtime·pwrite(SB),NOSPLIT,$0
-	MOVQ	$51, BP
+	MOVL	fd+0(FP), DI
+	MOVQ	p+8(FP), SI
+	MOVL	n+16(FP), DX
+	MOVQ	a4+24(FP), R10
+	MOVQ	$51, AX
 	SYSCALL
-	MOVL	AX, ret+32(FP)
-	RET
-
-// int32 _seek(int64*, int32, int64, int32)
-TEXT _seek<>(SB),NOSPLIT,$0
-	MOVQ	$39, BP
-	SYSCALL
+	MOVQ	AX, ret+32(FP)
 	RET
 
 // int64 seek(int32, int64, int32)
-// Convenience wrapper around _seek, the actual system call.
 TEXT runtime·seek(SB),NOSPLIT,$32
-	LEAQ	ret+24(FP), AX
-	MOVL	fd+0(FP), BX
-	MOVQ	offset+8(FP), CX
-	MOVL	whence+16(FP), DX
-	MOVQ	AX, 0(SP)
-	MOVL	BX, 8(SP)
-	MOVQ	CX, 16(SP)
-	MOVL	DX, 24(SP)
-	CALL	_seek<>(SB)
-	CMPL	AX, $0
-	JGE	2(PC)
-	MOVQ	$-1, ret+24(FP)
+	MOVL	fd+0(FP), DI
+	MOVQ	off+4(FP), SI
+	MOVL	whence+12(FP), DX
+	MOVQ	$39, AX
+	SYSCALL
+	MOVQ	AX, ret+16(FP)
 	RET
 
 TEXT runtime·closefd(SB),NOSPLIT,$0
-	MOVQ	$4, BP
+	MOVL	a0+0(FP), DI
+	MOVQ	$4, AX
 	SYSCALL
-	MOVL	AX, ret+8(FP)
+	MOVQ AX, ret+8(FP)
 	RET
 
 TEXT runtime·exits(SB),NOSPLIT,$0
-	MOVQ	$8, BP
+	MOVQ	a0+0(FP), DI
+	MOVQ	$8, AX
 	SYSCALL
 	RET
 
 TEXT runtime·brk_(SB),NOSPLIT,$0
-	MOVQ	$24, BP
+	MOVQ	a0+0(FP), DI
+	MOVQ	$24, AX
 	SYSCALL
-	MOVL	AX, ret+8(FP)
+	MOVQ AX, ret+8(FP)
 	RET
 
 TEXT runtime·sleep(SB),NOSPLIT,$0
-	MOVQ	$17, BP
+	MOVL	a0+0(FP), DI
+	MOVQ	$17, AX
 	SYSCALL
-	MOVL	AX, ret+8(FP)
+	MOVQ AX, ret+8(FP)
 	RET
 
 TEXT runtime·plan9_semacquire(SB),NOSPLIT,$0
-	MOVQ	$37, BP
+	MOVQ	a0+0(FP), DI
+	MOVQ	a1+8(FP), SI
+	MOVQ	$37, AX
 	SYSCALL
-	MOVL	AX, ret+16(FP)
+	MOVQ AX, ret+16(FP)
 	RET
 
 TEXT runtime·plan9_tsemacquire(SB),NOSPLIT,$0
-	MOVQ	$52, BP
+	MOVQ	a0+0(FP), DI
+	MOVQ	a1+8(FP), SI
+	MOVQ	$52, AX
 	SYSCALL
-	MOVL	AX, ret+16(FP)
+	MOVQ AX, ret+16(FP)
 	RET
 
 TEXT runtime·nsec(SB),NOSPLIT,$0
-	MOVQ	$53, BP
+	MOVQ	$53, AX
 	SYSCALL
 	MOVQ	AX, ret+8(FP)
 	RET
@@ -115,27 +119,32 @@ TEXT runtime·walltime(SB),NOSPLIT,$8-12
 	RET
 
 TEXT runtime·notify(SB),NOSPLIT,$0
-	MOVQ	$28, BP
+	MOVQ	a0+0(FP), DI
+	MOVQ	$28, AX
 	SYSCALL
-	MOVL	AX, ret+8(FP)
+	MOVQ AX, ret+8(FP)
 	RET
 
 TEXT runtime·noted(SB),NOSPLIT,$0
-	MOVQ	$29, BP
+	MOVL	a0+0(FP), DI
+	MOVQ	$29, AX
 	SYSCALL
-	MOVL	AX, ret+8(FP)
+	MOVQ AX, ret+8(FP)
 	RET
 	
 TEXT runtime·plan9_semrelease(SB),NOSPLIT,$0
-	MOVQ	$38, BP
+	MOVQ	a0+0(FP), DI
+	MOVQ	a1+8(FP), SI
+	MOVQ	$38, AX
 	SYSCALL
-	MOVL	AX, ret+16(FP)
+	MOVQ AX, ret+16(FP)
 	RET
 
 TEXT runtime·rfork(SB),NOSPLIT,$0
-	MOVQ	$19, BP
+	MOVL	a0+0(FP), DI
+	MOVQ	$19, AX
 	SYSCALL
-	MOVL	AX, ret+8(FP)
+	MOVQ AX, ret+8(FP)
 	RET
 
 TEXT runtime·tstart_plan9(SB),NOSPLIT,$0
@@ -152,7 +161,7 @@ TEXT runtime·tstart_plan9(SB),NOSPLIT,$0
 
 	// Initialize procid from TOS struct.
 	MOVQ	_tos(SB), AX
-	MOVL	64(AX), AX
+	MOVL	24(AX), AX
 	MOVQ	AX, m_procid(CX)	// save pid as m->procid
 
 	// Finally, initialize g.
@@ -181,8 +190,8 @@ TEXT runtime·sigtramp(SB),NOSPLIT,$0
 	RET
 
 	// save args
-	MOVQ	ureg+0(FP), CX
-	MOVQ	note+8(FP), DX
+	MOVQ	DI, CX
+	MOVQ	SI, DX
 
 	// change stack
 	MOVQ	g_m(BX), BX
@@ -231,7 +240,9 @@ TEXT runtime·setfpmasks(SB),NOSPLIT,$8
 
 // void errstr(int8 *buf, int32 len)
 TEXT errstr<>(SB),NOSPLIT,$0
-	MOVQ    $41, BP
+	MOVQ	buf+0(FP), DI
+	MOVQ	len+8(FP), SI
+	MOVQ    $41, AX
 	SYSCALL
 	RET
 
