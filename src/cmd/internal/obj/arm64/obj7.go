@@ -382,7 +382,7 @@ func (c *ctxt7) rewriteToUseGot(p *obj.Prog) {
 			p.From.Offset = 0
 		}
 	}
-	if p.From3 != nil && p.From3.Name == obj.NAME_EXTERN {
+	if p.GetFrom3() != nil && p.GetFrom3().Name == obj.NAME_EXTERN {
 		c.ctxt.Diag("don't know how to handle %v with -dynlink", p)
 	}
 	var source *obj.Addr
@@ -632,7 +632,7 @@ func preprocess(ctxt *obj.Link, cursym *obj.LSym, newprog obj.ProgAlloc) {
 				//	B    end
 				//
 				// The NOP is needed to give the jumps somewhere to land.
-				// It is a liblink NOP, not a ARM64 NOP: it encodes to 0 instruction bytes.
+				// It is a liblink NOP, not an ARM64 NOP: it encodes to 0 instruction bytes.
 				q = q1
 
 				// MOV g_panic(g), R1
@@ -813,7 +813,7 @@ var unaryDst = map[obj.As]bool{
 	ADWORD: true,
 	ABL:    true,
 	AB:     true,
-	ASVC:   true,
+	ACLREX: true,
 }
 
 var Linkarm64 = obj.LinkArch{

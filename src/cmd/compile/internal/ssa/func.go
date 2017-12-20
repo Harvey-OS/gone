@@ -44,8 +44,6 @@ type Func struct {
 	scheduled bool // Values in Blocks are in final order
 	NoSplit   bool // true if function is marked as nosplit.  Used by schedule check pass.
 
-	WBPos src.XPos // line number of first write barrier
-
 	// when register allocation is done, maps value ids to locations
 	RegAlloc []Location
 
@@ -409,6 +407,7 @@ func (b *Block) NewValue4(pos src.XPos, op Op, t *types.Type, arg0, arg1, arg2, 
 
 // constVal returns a constant value for c.
 func (f *Func) constVal(pos src.XPos, op Op, t *types.Type, c int64, setAuxInt bool) *Value {
+	// TODO remove unused pos parameter, both here and in *func.ConstXXX callers.
 	if f.constants == nil {
 		f.constants = make(map[int64][]*Value)
 	}
@@ -423,9 +422,9 @@ func (f *Func) constVal(pos src.XPos, op Op, t *types.Type, c int64, setAuxInt b
 	}
 	var v *Value
 	if setAuxInt {
-		v = f.Entry.NewValue0I(pos, op, t, c)
+		v = f.Entry.NewValue0I(src.NoXPos, op, t, c)
 	} else {
-		v = f.Entry.NewValue0(pos, op, t)
+		v = f.Entry.NewValue0(src.NoXPos, op, t)
 	}
 	f.constants[c] = append(vv, v)
 	return v

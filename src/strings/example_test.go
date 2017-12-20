@@ -249,6 +249,12 @@ func ExampleToTitle() {
 	// ХЛЕБ
 }
 
+func ExampleToTitleSpecial() {
+	fmt.Println(strings.ToTitleSpecial(unicode.TurkishCase, "dünyanın ilk borsa yapısı Aizonai kabul edilir"))
+	// Output:
+	// DÜNYANIN İLK BORSA YAPISI AİZONAİ KABUL EDİLİR
+}
+
 func ExampleMap() {
 	rot13 := func(r rune) rune {
 		switch {
@@ -274,9 +280,19 @@ func ExampleToUpper() {
 	// Output: GOPHER
 }
 
+func ExampleToUpperSpecial() {
+	fmt.Println(strings.ToUpperSpecial(unicode.TurkishCase, "örnek iş"))
+	// Output: ÖRNEK İŞ
+}
+
 func ExampleToLower() {
 	fmt.Println(strings.ToLower("Gopher"))
 	// Output: gopher
+}
+
+func ExampleToLowerSpecial() {
+	fmt.Println(strings.ToLowerSpecial(unicode.TurkishCase, "Önnek İş"))
+	// Output: önnek iş
 }
 
 func ExampleTrim() {
@@ -334,4 +350,15 @@ func ExampleTrimRightFunc() {
 		return !unicode.IsLetter(r) && !unicode.IsNumber(r)
 	}))
 	// Output: ¡¡¡Hello, Gophers
+}
+
+func ExampleBuilder() {
+	var b strings.Builder
+	for i := 3; i >= 1; i-- {
+		fmt.Fprintf(&b, "%d...", i)
+	}
+	b.WriteString("ignition")
+	fmt.Println(b.String())
+
+	// Output: 3...2...1...ignition
 }

@@ -1,6 +1,6 @@
 <!--{
 	"Title": "The Go Programming Language Specification",
-	"Subtitle": "Version of August 25, 2017",
+	"Subtitle": "Version of October 25, 2017",
 	"Path": "/ref/spec"
 }-->
 
@@ -16,8 +16,7 @@ Go is a general-purpose language designed with systems programming
 in mind. It is strongly typed and garbage-collected and has explicit
 support for concurrent programming.  Programs are constructed from
 <i>packages</i>, whose properties allow efficient management of
-dependencies. The existing implementations use a traditional
-compile/link model to generate executable binaries.
+dependencies.
 </p>
 
 <p>
@@ -761,7 +760,8 @@ using a receiver of that type.
 <p>
 A <i>boolean type</i> represents the set of Boolean truth values
 denoted by the predeclared constants <code>true</code>
-and <code>false</code>. The predeclared boolean type is <code>bool</code>.
+and <code>false</code>. The predeclared boolean type is <code>bool</code>;
+it is a <a href="#Type_definitions">defined type</a>.
 </p>
 
 <h3 id="Numeric_types">Numeric types</h3>
@@ -808,8 +808,9 @@ uintptr  an unsigned integer large enough to store the uninterpreted bits of a p
 </pre>
 
 <p>
-To avoid portability issues all numeric types are distinct except
-<code>byte</code>, which is an alias for <code>uint8</code>, and
+To avoid portability issues all numeric types are <a href="#Type_definitions">defined
+types</a> and thus distinct except
+<code>byte</code>, which is an <a href="#Alias_declarations">alias</a> for <code>uint8</code>, and
 <code>rune</code>, which is an alias for <code>int32</code>.
 Conversions
 are required when different numeric types are mixed in an expression
@@ -825,7 +826,8 @@ A <i>string type</i> represents the set of string values.
 A string value is a (possibly empty) sequence of bytes.
 Strings are immutable: once created,
 it is impossible to change the contents of a string.
-The predeclared string type is <code>string</code>.
+The predeclared string type is <code>string</code>;
+it is a <a href="#Type_definitions">defined type</a>.
 </p>
 
 <p>
@@ -1834,7 +1836,7 @@ const u, v float32 = 0, 3    // u = 0.0, v = 3.0
 
 <p>
 Within a parenthesized <code>const</code> declaration list the
-expression list may be omitted from any but the first declaration.
+expression list may be omitted from any but the first ConstSpec.
 Such an empty list is equivalent to the textual substitution of the
 first preceding non-empty expression list and its type if any.
 Omitting the list of expressions is therefore equivalent to
@@ -1863,52 +1865,51 @@ const (
 <p>
 Within a <a href="#Constant_declarations">constant declaration</a>, the predeclared identifier
 <code>iota</code> represents successive untyped integer <a href="#Constants">
-constants</a>. It is reset to 0 whenever the reserved word <code>const</code>
-appears in the source and increments after each <a href="#ConstSpec">ConstSpec</a>.
+constants</a>. Its value is the index of the respective <a href="#ConstSpec">ConstSpec</a>
+in that constant declaration, starting at zero.
 It can be used to construct a set of related constants:
 </p>
 
 <pre>
-const ( // iota is reset to 0
+const (
 	c0 = iota  // c0 == 0
 	c1 = iota  // c1 == 1
 	c2 = iota  // c2 == 2
 )
 
-const ( // iota is reset to 0
-	a = 1 &lt;&lt; iota  // a == 1
-	b = 1 &lt;&lt; iota  // b == 2
-	c = 3          // c == 3  (iota is not used but still incremented)
-	d = 1 &lt;&lt; iota  // d == 8
+const (
+	a = 1 &lt;&lt; iota  // a == 1  (iota == 0)
+	b = 1 &lt;&lt; iota  // b == 2  (iota == 1)
+	c = 3          // c == 3  (iota == 2, unused)
+	d = 1 &lt;&lt; iota  // d == 8  (iota == 3)
 )
 
-const ( // iota is reset to 0
+const (
 	u         = iota * 42  // u == 0     (untyped integer constant)
 	v float64 = iota * 42  // v == 42.0  (float64 constant)
 	w         = iota * 42  // w == 84    (untyped integer constant)
 )
 
-const x = iota  // x == 0  (iota has been reset)
-const y = iota  // y == 0  (iota has been reset)
+const x = iota  // x == 0
+const y = iota  // y == 0
 </pre>
 
 <p>
-Within an ExpressionList, the value of each <code>iota</code> is the same because
-it is only incremented after each ConstSpec:
+By definition, multiple uses of <code>iota</code> in the same ConstSpec all have the same value:
 </p>
 
 <pre>
 const (
-	bit0, mask0 = 1 &lt;&lt; iota, 1&lt;&lt;iota - 1  // bit0 == 1, mask0 == 0
-	bit1, mask1                           // bit1 == 2, mask1 == 1
-	_, _                                  // skips iota == 2
-	bit3, mask3                           // bit3 == 8, mask3 == 7
+	bit0, mask0 = 1 &lt;&lt; iota, 1&lt;&lt;iota - 1  // bit0 == 1, mask0 == 0  (iota == 0)
+	bit1, mask1                           // bit1 == 2, mask1 == 1  (iota == 1)
+	_, _                                  //                        (iota == 2, unused)
+	bit3, mask3                           // bit3 == 8, mask3 == 7  (iota == 3)
 )
 </pre>
 
 <p>
-This last example exploits the implicit repetition of the
-last non-empty expression list.
+This last example exploits the <a href="#Constant_declarations">implicit repetition</a>
+of the last non-empty expression list.
 </p>
 
 
@@ -2277,7 +2278,6 @@ non-<a href="#Blank_identifier">blank</a> identifier denoting a
 <a href="#Constant_declarations">constant</a>,
 <a href="#Variable_declarations">variable</a>, or
 <a href="#Function_declarations">function</a>,
-a <a href="#Method_expressions">method expression</a> yielding a function,
 or a parenthesized expression.
 </p>
 
@@ -2287,7 +2287,7 @@ operand only on the left-hand side of an <a href="#Assignments">assignment</a>.
 </p>
 
 <pre class="ebnf">
-Operand     = Literal | OperandName | MethodExpr | "(" Expression ")" .
+Operand     = Literal | OperandName | "(" Expression ")" .
 Literal     = BasicLit | CompositeLit | FunctionLit .
 BasicLit    = int_lit | float_lit | imaginary_lit | rune_lit | string_lit .
 OperandName = identifier | QualifiedIdent.
@@ -2553,6 +2553,7 @@ Primary expressions are the operands for unary and binary expressions.
 PrimaryExpr =
 	Operand |
 	Conversion |
+	MethodExpr |
 	PrimaryExpr Selector |
 	PrimaryExpr Index |
 	PrimaryExpr Slice |
@@ -2739,7 +2740,7 @@ argument that is the receiver of the method.
 
 <pre class="ebnf">
 MethodExpr    = ReceiverType "." MethodName .
-ReceiverType  = TypeName | "(" "*" TypeName ")" | "(" ReceiverType ")" .
+ReceiverType  = Type .
 </pre>
 
 <p>
@@ -2975,12 +2976,12 @@ The following rules apply:
 If <code>a</code> is not a map:
 </p>
 <ul>
-	<li>the index <code>x</code> must be of integer type or untyped;
-	    it is <i>in range</i> if <code>0 &lt;= x &lt; len(a)</code>,
+	<li>the index <code>x</code> must be of integer type or an untyped constant</li>
+	<li>a constant index must be non-negative and
+	    <a href="#Representability">representable</a> by a value of type <code>int</code></li>
+	<li>a constant index that is untyped is given type <code>int</code></li>
+	<li>the index <code>x</code> is <i>in range</i> if <code>0 &lt;= x &lt; len(a)</code>,
 	    otherwise it is <i>out of range</i></li>
-	<li>a <a href="#Constants">constant</a> index must be non-negative
-	    and <a href="#Representability">representable</a> by a value
-	    of type <code>int</code></li>
 </ul>
 
 <p>
@@ -3147,8 +3148,8 @@ and the result of the slice operation is a slice with the same element type as t
 
 <p>
 If the sliced operand of a valid slice expression is a <code>nil</code> slice, the result
-is a <code>nil</code> slice. Otherwise, the result shares its underlying array with the
-operand.
+is a <code>nil</code> slice. Otherwise, if the result is a slice, it shares its underlying
+array with the operand.
 </p>
 
 <h4>Full slice expressions</h4>
@@ -3450,18 +3451,20 @@ replaced by its left operand alone.
 
 <pre>
 var s uint = 33
-var i = 1&lt;&lt;s           // 1 has type int
-var j int32 = 1&lt;&lt;s     // 1 has type int32; j == 0
-var k = uint64(1&lt;&lt;s)   // 1 has type uint64; k == 1&lt;&lt;33
-var m int = 1.0&lt;&lt;s     // 1.0 has type int; m == 0 if ints are 32bits in size
-var n = 1.0&lt;&lt;s == j    // 1.0 has type int32; n == true
-var o = 1&lt;&lt;s == 2&lt;&lt;s   // 1 and 2 have type int; o == true if ints are 32bits in size
-var p = 1&lt;&lt;s == 1&lt;&lt;33  // illegal if ints are 32bits in size: 1 has type int, but 1&lt;&lt;33 overflows int
-var u = 1.0&lt;&lt;s         // illegal: 1.0 has type float64, cannot shift
-var u1 = 1.0&lt;&lt;s != 0   // illegal: 1.0 has type float64, cannot shift
-var u2 = 1&lt;&lt;s != 1.0   // illegal: 1 has type float64, cannot shift
-var v float32 = 1&lt;&lt;s   // illegal: 1 has type float32, cannot shift
-var w int64 = 1.0&lt;&lt;33  // 1.0&lt;&lt;33 is a constant shift expression
+var i = 1&lt;&lt;s                  // 1 has type int
+var j int32 = 1&lt;&lt;s            // 1 has type int32; j == 0
+var k = uint64(1&lt;&lt;s)          // 1 has type uint64; k == 1&lt;&lt;33
+var m int = 1.0&lt;&lt;s            // 1.0 has type int; m == 0 if ints are 32bits in size
+var n = 1.0&lt;&lt;s == j           // 1.0 has type int32; n == true
+var o = 1&lt;&lt;s == 2&lt;&lt;s          // 1 and 2 have type int; o == true if ints are 32bits in size
+var p = 1&lt;&lt;s == 1&lt;&lt;33         // illegal if ints are 32bits in size: 1 has type int, but 1&lt;&lt;33 overflows int
+var u = 1.0&lt;&lt;s                // illegal: 1.0 has type float64, cannot shift
+var u1 = 1.0&lt;&lt;s != 0          // illegal: 1.0 has type float64, cannot shift
+var u2 = 1&lt;&lt;s != 1.0          // illegal: 1 has type float64, cannot shift
+var v float32 = 1&lt;&lt;s          // illegal: 1 has type float32, cannot shift
+var w int64 = 1.0&lt;&lt;33         // 1.0&lt;&lt;33 is a constant shift expression
+var x = a[1.0&lt;&lt;s]             // 1.0 has type int; x == a[0] if ints are 32bits in size
+var a = make([]byte, 1.0&lt;&lt;s)  // 1.0 has type int; len(a) == 0 if ints are 32bits in size
 </pre>
 
 
@@ -5023,12 +5026,10 @@ the range clause is equivalent to the same clause without that identifier.
 </p>
 
 <p>
-The range expression is evaluated once before beginning the loop,
-with one exception: if the range expression is an array or a pointer to an array
-and at most one iteration variable is present, only the range expression's
-length is evaluated; if that length is constant,
-<a href="#Length_and_capacity">by definition</a>
-the range expression itself will not be evaluated.
+The range expression <code>x</code> is evaluated once before beginning the loop,
+with one exception: if at most one iteration variable is present and
+<code>len(x)</code> is <a href="#Length_and_capacity">constant</a>,
+the range expression is not evaluated.
 </p>
 
 <p>
@@ -5724,9 +5725,10 @@ make(T, n)       channel    buffered channel of type T, buffer size n
 
 
 <p>
-The size arguments <code>n</code> and <code>m</code> must be of integer type or untyped.
-A <a href="#Constants">constant</a> size argument must be non-negative and
-<a href="#Representability">representable</a> by a value of type <code>int</code>.
+Each of the size arguments <code>n</code> and <code>m</code> must be of integer type
+or an untyped <a href="#Constants">constant</a>.
+A constant size argument must be non-negative and <a href="#Representability">representable</a>
+by a value of type <code>int</code>; if it is an untyped constant it is given type <code>int</code>.
 If both <code>n</code> and <code>m</code> are provided and are constant, then
 <code>n</code> must be no larger than <code>m</code>.
 If <code>n</code> is negative or larger than <code>m</code> at run time,
@@ -6453,7 +6455,8 @@ type Error interface {
 <h3 id="Package_unsafe">Package <code>unsafe</code></h3>
 
 <p>
-The built-in package <code>unsafe</code>, known to the compiler,
+The built-in package <code>unsafe</code>, known to the compiler
+and accessible through the <a href="#Import_declarations">import path</a> <code>"unsafe"</code>,
 provides facilities for low-level programming including operations
 that violate the type system. A package using <code>unsafe</code>
 must be vetted manually for type safety and may not be portable.

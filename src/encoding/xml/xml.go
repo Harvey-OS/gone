@@ -135,6 +135,23 @@ func CopyToken(t Token) Token {
 	return t
 }
 
+// A TokenReader is anything that can decode a stream of XML tokens, including a
+// Decoder.
+//
+// When Token encounters an error or end-of-file condition after successfully
+// reading a token, it returns the token. It may return the (non-nil) error from
+// the same call or return the error (and a nil token) from a subsequent call.
+// An instance of this general case is that a TokenReader returning a non-nil
+// token at the end of the token stream may return either io.EOF or a nil error.
+// The next Read should return nil, io.EOF.
+//
+// Implementations of Token are discouraged from returning a nil token with a
+// nil error. Callers should treat a return of nil, nil as indicating that
+// nothing happened; in particular it does not indicate EOF.
+type TokenReader interface {
+	Token() (Token, error)
+}
+
 // A Decoder represents an XML parser reading a particular input stream.
 // The parser assumes that its input is encoded in UTF-8.
 type Decoder struct {
@@ -190,6 +207,7 @@ type Decoder struct {
 	DefaultSpace string
 
 	r              io.ByteReader
+	t              TokenReader
 	buf            bytes.Buffer
 	saved          *bytes.Buffer
 	stk            *stack
@@ -216,6 +234,22 @@ func NewDecoder(r io.Reader) *Decoder {
 		Strict:   true,
 	}
 	d.switchToReader(r)
+	return d
+}
+
+// NewTokenDecoder creates a new XML parser using an underlying token stream.
+func NewTokenDecoder(t TokenReader) *Decoder {
+	// Is it already a Decoder?
+	if d, ok := t.(*Decoder); ok {
+		return d
+	}
+	d := &Decoder{
+		ns:       make(map[string]string),
+		t:        t,
+		nextByte: -1,
+		line:     1,
+		Strict:   true,
+	}
 	return d
 }
 
@@ -304,6 +338,7 @@ func (d *Decoder) Token() (Token, error) {
 const (
 	xmlURL      = "http://www.w3.org/XML/1998/namespace"
 	xmlnsPrefix = "xmlns"
+	xmlPrefix   = "xml"
 )
 
 // Apply name space translation to name n.
@@ -315,7 +350,7 @@ func (d *Decoder) translate(n *Name, isElementName bool) {
 		return
 	case n.Space == "" && !isElementName:
 		return
-	case n.Space == xmlNamespacePrefix:
+	case n.Space == xmlPrefix:
 		n.Space = xmlURL
 	case n.Space == "" && n.Local == xmlnsPrefix:
 		return
@@ -511,6 +546,9 @@ func (d *Decoder) RawToken() (Token, error) {
 }
 
 func (d *Decoder) rawToken() (Token, error) {
+	if d.t != nil {
+		return d.t.Token()
+	}
 	if d.err != nil {
 		return nil, d.err
 	}

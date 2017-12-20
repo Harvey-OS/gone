@@ -116,6 +116,18 @@ func TestFormatShortYear(t *testing.T) {
 	}
 }
 
+// issue 22802.
+func TestFormatSpacePadding(t *testing.T) {
+	for i := 9; i <= 10; i++ {
+		time := Date(2001, Month(i), i, i, i, i, 700000000, UTC)
+		result := time.Format("2006-_1-_2 _3:_4:_5")
+		want := fmt.Sprintf("2001-%2d-%2d %2d:%2d:%2d", i, i, i, i, i)
+		if result != want {
+			t.Errorf("SpacePadding expected %q got %q", want, result)
+		}
+	}
+}
+
 type ParseTest struct {
 	name       string
 	format     string
@@ -465,6 +477,9 @@ var parseErrorTests = []ParseErrorTest{
 	{RFC3339, "2006-01-02T15:04:05Z_abc", `parsing time "2006-01-02T15:04:05Z_abc": extra text: _abc`},
 	// invalid second followed by optional fractional seconds
 	{RFC3339, "2010-02-04T21:00:67.012345678-08:00", "second out of range"},
+	// issue 21113
+	{"_2 Jan 06 15:04 MST", "4 --- 00 00:00 GMT", "cannot parse"},
+	{"_2 January 06 15:04 MST", "4 --- 00 00:00 GMT", "cannot parse"},
 }
 
 func TestParseErrors(t *testing.T) {
@@ -622,5 +637,27 @@ func TestUnderscoreTwoThousand(t *testing.T) {
 	}
 	if m := time.Minute(); m != 38 {
 		t.Errorf("Incorrect minute, got %d", m)
+	}
+}
+
+// issue 22802.
+func TestParseSpacePadding(t *testing.T) {
+	format := "2006-_1-_2 _3:_4:_5"
+	input := "2017- 9- 6  8: 4: 2"
+	time, err := Parse(format, input)
+	if err != nil {
+		t.Error(err)
+	}
+	if y, m, d := time.Date(); y != 2017 || m != 9 || d != 6 {
+		t.Errorf("Incorrect y/m/d, got %d/%d/%d", y, m, d)
+	}
+	if h := time.Hour(); h != 8 {
+		t.Errorf("Incorrect hour, got %d", h)
+	}
+	if m := time.Minute(); m != 4 {
+		t.Errorf("Incorrect minute, got %d", m)
+	}
+	if s := time.Second(); s != 2 {
+		t.Errorf("Incorrect second, got %d", s)
 	}
 }

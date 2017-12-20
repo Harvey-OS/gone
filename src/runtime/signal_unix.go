@@ -275,6 +275,12 @@ func sigpipe() {
 // sigtrampgo is called from the signal handler function, sigtramp,
 // written in assembly code.
 // This is called by the signal handler, and the world may be stopped.
+//
+// It must be nosplit because getg() is still the G that was running
+// (if any) when the signal was delivered, but it's (usually) called
+// on the gsignal stack. Until this switches the G to gsignal, the
+// stack bounds check won't work.
+//
 //go:nosplit
 //go:nowritebarrierrec
 func sigtrampgo(sig uint32, info *siginfo, ctx unsafe.Pointer) {
@@ -405,13 +411,8 @@ func sigpanic() {
 //go:nowritebarrierrec
 func dieFromSignal(sig uint32) {
 	unblocksig(sig)
-	// First, try any signal handler installed before the runtime
-	// initialized.
-	fn := atomic.Loaduintptr(&fwdSig[sig])
-	// On Darwin, sigtramp is called even for non-Go signal handlers.
 	// Mark the signal as unhandled to ensure it is forwarded.
 	atomic.Store(&handlingSig[sig], 0)
-	setsig(sig, fn)
 	raise(sig)
 
 	// That should have killed us. On some systems, though, raise
@@ -430,6 +431,14 @@ func dieFromSignal(sig uint32) {
 	osyield()
 	osyield()
 	osyield()
+
+	// On Darwin we may still fail to die, because raise sends the
+	// signal to the whole process rather than just the current thread,
+	// and osyield just sleeps briefly rather than letting all other
+	// threads run. See issue 20315. Sleep longer.
+	if GOOS == "darwin" {
+		usleep(100)
+	}
 
 	// If we are still somehow running, just exit with the wrong status.
 	exit(2)
@@ -525,7 +534,7 @@ func ensureSigM() {
 		// mask accordingly.
 		sigBlocked := sigset_all
 		for i := range sigtable {
-			if sigtable[i].flags&_SigUnblock != 0 {
+			if !blockableSig(uint32(i)) {
 				sigdelset(&sigBlocked, i)
 			}
 		}
@@ -537,7 +546,7 @@ func ensureSigM() {
 					sigdelset(&sigBlocked, int(sig))
 				}
 			case sig := <-disableSigChan:
-				if sig > 0 {
+				if sig > 0 && blockableSig(sig) {
 					sigaddset(&sigBlocked, int(sig))
 				}
 			}
@@ -601,17 +610,23 @@ func sigfwdgo(sig uint32, info *siginfo, ctx unsafe.Pointer) bool {
 		return false
 	}
 	fwdFn := atomic.Loaduintptr(&fwdSig[sig])
+	flags := sigtable[sig].flags
 
-	if !signalsOK {
-		// The only way we can get here is if we are in a
-		// library or archive, we installed a signal handler
-		// at program startup, but the Go runtime has not yet
-		// been initialized.
-		if fwdFn == _SIG_DFL {
-			dieFromSignal(sig)
-		} else {
-			sigfwd(fwdFn, sig, info, ctx)
+	// If we aren't handling the signal, forward it.
+	if atomic.Load(&handlingSig[sig]) == 0 || !signalsOK {
+		// If the signal is ignored, doing nothing is the same as forwarding.
+		if fwdFn == _SIG_IGN || (fwdFn == _SIG_DFL && flags&_SigIgn != 0) {
+			return true
 		}
+		// We are not handling the signal and there is no other handler to forward to.
+		// Crash with the default behavior.
+		if fwdFn == _SIG_DFL {
+			setsig(sig, _SIG_DFL)
+			dieFromSignal(sig)
+			return false
+		}
+
+		sigfwd(fwdFn, sig, info, ctx)
 		return true
 	}
 
@@ -619,18 +634,6 @@ func sigfwdgo(sig uint32, info *siginfo, ctx unsafe.Pointer) bool {
 	if fwdFn == _SIG_DFL {
 		return false
 	}
-
-	// If we aren't handling the signal, forward it.
-	// Really if we aren't handling the signal, we shouldn't get here,
-	// but on Darwin setsigstack can lead us here because it sets
-	// the sa_tramp field. The sa_tramp field is not returned by
-	// sigaction, so the fix for that is non-obvious.
-	if atomic.Load(&handlingSig[sig]) == 0 {
-		sigfwd(fwdFn, sig, info, ctx)
-		return true
-	}
-
-	flags := sigtable[sig].flags
 
 	c := &sigctxt{info, ctx}
 	// Only forward synchronous signals and SIGPIPE.
@@ -725,7 +728,7 @@ func minitSignalStack() {
 		signalstack(&_g_.m.gsignal.stack)
 		_g_.m.newSigstack = true
 	} else {
-		setGsignalStack(&st, nil)
+		setGsignalStack(&st, &_g_.m.goSigStack)
 		_g_.m.newSigstack = false
 	}
 }
@@ -741,7 +744,7 @@ func minitSignalStack() {
 func minitSignalMask() {
 	nmask := getg().m.sigmask
 	for i := range sigtable {
-		if sigtable[i].flags&_SigUnblock != 0 {
+		if !blockableSig(uint32(i)) {
 			sigdelset(&nmask, i)
 		}
 	}
@@ -755,7 +758,34 @@ func unminitSignals() {
 	if getg().m.newSigstack {
 		st := stackt{ss_flags: _SS_DISABLE}
 		sigaltstack(&st, nil)
+	} else {
+		// We got the signal stack from someone else. Restore
+		// the Go-allocated stack in case this M gets reused
+		// for another thread (e.g., it's an extram). Also, on
+		// Android, libc allocates a signal stack for all
+		// threads, so it's important to restore the Go stack
+		// even on Go-created threads so we can free it.
+		restoreGsignalStack(&getg().m.goSigStack)
 	}
+}
+
+// blockableSig returns whether sig may be blocked by the signal mask.
+// We never want to block the signals marked _SigUnblock;
+// these are the synchronous signals that turn into a Go panic.
+// In a Go program--not a c-archive/c-shared--we never want to block
+// the signals marked _SigKill or _SigThrow, as otherwise it's possible
+// for all running threads to block them and delay their delivery until
+// we start a new thread. When linked into a C program we let the C code
+// decide on the disposition of those signals.
+func blockableSig(sig uint32) bool {
+	flags := sigtable[sig].flags
+	if flags&_SigUnblock != 0 {
+		return false
+	}
+	if isarchive || islibrary {
+		return true
+	}
+	return flags&(_SigKill|_SigThrow) == 0
 }
 
 // gsignalStack saves the fields of the gsignal stack changed by

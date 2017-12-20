@@ -166,22 +166,24 @@ func IndexRune(s string, r rune) int {
 // IndexAny returns the index of the first instance of any Unicode code point
 // from chars in s, or -1 if no Unicode code point from chars is present in s.
 func IndexAny(s, chars string) int {
-	if len(chars) > 0 {
-		if len(s) > 8 {
-			if as, isASCII := makeASCIISet(chars); isASCII {
-				for i := 0; i < len(s); i++ {
-					if as.contains(s[i]) {
-						return i
-					}
-				}
-				return -1
-			}
-		}
-		for i, c := range s {
-			for _, m := range chars {
-				if c == m {
+	if chars == "" {
+		// Avoid scanning all of s.
+		return -1
+	}
+	if len(s) > 8 {
+		if as, isASCII := makeASCIISet(chars); isASCII {
+			for i := 0; i < len(s); i++ {
+				if as.contains(s[i]) {
 					return i
 				}
+			}
+			return -1
+		}
+	}
+	for i, c := range s {
+		for _, m := range chars {
+			if c == m {
+				return i
 			}
 		}
 	}
@@ -192,24 +194,26 @@ func IndexAny(s, chars string) int {
 // point from chars in s, or -1 if no Unicode code point from chars is
 // present in s.
 func LastIndexAny(s, chars string) int {
-	if len(chars) > 0 {
-		if len(s) > 8 {
-			if as, isASCII := makeASCIISet(chars); isASCII {
-				for i := len(s) - 1; i >= 0; i-- {
-					if as.contains(s[i]) {
-						return i
-					}
-				}
-				return -1
-			}
-		}
-		for i := len(s); i > 0; {
-			r, size := utf8.DecodeLastRuneInString(s[:i])
-			i -= size
-			for _, c := range chars {
-				if r == c {
+	if chars == "" {
+		// Avoid scanning all of s.
+		return -1
+	}
+	if len(s) > 8 {
+		if as, isASCII := makeASCIISet(chars); isASCII {
+			for i := len(s) - 1; i >= 0; i-- {
+				if as.contains(s[i]) {
 					return i
 				}
+			}
+			return -1
+		}
+	}
+	for i := len(s); i > 0; {
+		r, size := utf8.DecodeLastRuneInString(s[:i])
+		i -= size
+		for _, c := range chars {
+			if r == c {
+				return i
 			}
 		}
 	}
@@ -546,10 +550,62 @@ func Repeat(s string, count int) string {
 }
 
 // ToUpper returns a copy of the string s with all Unicode letters mapped to their upper case.
-func ToUpper(s string) string { return Map(unicode.ToUpper, s) }
+func ToUpper(s string) string {
+	isASCII, hasLower := true, false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c >= utf8.RuneSelf {
+			isASCII = false
+			break
+		}
+		hasLower = hasLower || (c >= 'a' && c <= 'z')
+	}
+
+	if isASCII { // optimize for ASCII-only strings.
+		if !hasLower {
+			return s
+		}
+		b := make([]byte, len(s))
+		for i := 0; i < len(s); i++ {
+			c := s[i]
+			if c >= 'a' && c <= 'z' {
+				c -= 'a' - 'A'
+			}
+			b[i] = c
+		}
+		return string(b)
+	}
+	return Map(unicode.ToUpper, s)
+}
 
 // ToLower returns a copy of the string s with all Unicode letters mapped to their lower case.
-func ToLower(s string) string { return Map(unicode.ToLower, s) }
+func ToLower(s string) string {
+	isASCII, hasUpper := true, false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c >= utf8.RuneSelf {
+			isASCII = false
+			break
+		}
+		hasUpper = hasUpper || (c >= 'A' && c <= 'Z')
+	}
+
+	if isASCII { // optimize for ASCII-only strings.
+		if !hasUpper {
+			return s
+		}
+		b := make([]byte, len(s))
+		for i := 0; i < len(s); i++ {
+			c := s[i]
+			if c >= 'A' && c <= 'Z' {
+				c += 'a' - 'A'
+			}
+			b[i] = c
+		}
+		return string(b)
+	}
+	return Map(unicode.ToLower, s)
+}
 
 // ToTitle returns a copy of the string s with all Unicode letters mapped to their title case.
 func ToTitle(s string) string { return Map(unicode.ToTitle, s) }
@@ -869,4 +925,28 @@ func EqualFold(s, t string) bool {
 
 	// One string is empty. Are both?
 	return s == t
+}
+
+func indexRabinKarp(s, substr string) int {
+	// Rabin-Karp search
+	hashss, pow := hashStr(substr)
+	n := len(substr)
+	var h uint32
+	for i := 0; i < n; i++ {
+		h = h*primeRK + uint32(s[i])
+	}
+	if h == hashss && s[:n] == substr {
+		return 0
+	}
+	for i := n; i < len(s); {
+		h *= primeRK
+		h += uint32(s[i])
+		h -= pow * uint32(s[i-n])
+		i++
+		if h == hashss && s[i-n:i] == substr {
+			return i - n
+		}
+	}
+	return -1
+
 }

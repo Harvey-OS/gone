@@ -7,10 +7,93 @@
 #include "funcdata.h"
 #include "textflag.h"
 
+// _rt0_386 is common startup code for most 386 systems when using
+// internal linking. This is the entry point for the program from the
+// kernel for an ordinary -buildmode=exe program. The stack holds the
+// number of arguments and the C-style argv.
+TEXT _rt0_386(SB),NOSPLIT,$8
+	MOVL	8(SP), AX	// argc
+	LEAL	12(SP), BX	// argv
+	MOVL	AX, 0(SP)
+	MOVL	BX, 4(SP)
+	JMP	runtime·rt0_go(SB)
+
+// _rt0_386_lib is common startup code for most 386 systems when
+// using -buildmode=c-archive or -buildmode=c-shared. The linker will
+// arrange to invoke this function as a global constructor (for
+// c-archive) or when the shared library is loaded (for c-shared).
+// We expect argc and argv to be passed on the stack following the
+// usual C ABI.
+TEXT _rt0_386_lib(SB),NOSPLIT,$0
+	PUSHL	BP
+	MOVL	SP, BP
+	PUSHL	BX
+	PUSHL	SI
+	PUSHL	DI
+
+	MOVL	8(BP), AX
+	MOVL	AX, _rt0_386_lib_argc<>(SB)
+	MOVL	12(BP), AX
+	MOVL	AX, _rt0_386_lib_argv<>(SB)
+
+	// Synchronous initialization.
+	CALL	runtime·libpreinit(SB)
+
+	SUBL	$8, SP
+
+	// Create a new thread to do the runtime initialization.
+	MOVL	_cgo_sys_thread_create(SB), AX
+	TESTL	AX, AX
+	JZ	nocgo
+
+	// Align stack to call C function.
+	// We moved SP to BP above, but BP was clobbered by the libpreinit call.
+	MOVL	SP, BP
+	ANDL	$~15, SP
+
+	MOVL	$_rt0_386_lib_go(SB), BX
+	MOVL	BX, 0(SP)
+	MOVL	$0, 4(SP)
+
+	CALL	AX
+
+	MOVL	BP, SP
+
+	JMP	restore
+
+nocgo:
+	MOVL	$0x800000, 0(SP)                    // stacksize = 8192KB
+	MOVL	$_rt0_386_lib_go(SB), AX
+	MOVL	AX, 4(SP)                           // fn
+	CALL	runtime·newosproc0(SB)
+
+restore:
+	ADDL	$8, SP
+	POPL	DI
+	POPL	SI
+	POPL	BX
+	POPL	BP
+	RET
+
+// _rt0_386_lib_go initializes the Go runtime.
+// This is started in a separate thread by _rt0_386_lib.
+TEXT _rt0_386_lib_go(SB),NOSPLIT,$8
+	MOVL	_rt0_386_lib_argc<>(SB), AX
+	MOVL	AX, 0(SP)
+	MOVL	_rt0_386_lib_argv<>(SB), AX
+	MOVL	AX, 4(SP)
+	JMP	runtime·rt0_go(SB)
+
+DATA _rt0_386_lib_argc<>(SB)/4, $0
+GLOBL _rt0_386_lib_argc<>(SB),NOPTR, $4
+DATA _rt0_386_lib_argv<>(SB)/4, $0
+GLOBL _rt0_386_lib_argv<>(SB),NOPTR, $4
+
 TEXT runtime·rt0_go(SB),NOSPLIT,$0
-	// copy arguments forward on an even stack
-	MOVL	argc+0(FP), AX
-	MOVL	argv+4(FP), BX
+	// Copy arguments forward on an even stack.
+	// Users of this function jump to it, they don't call it.
+	MOVL	0(SP), AX
+	MOVL	4(SP), BX
 	SUBL	$128, SP		// plenty of scratch
 	ANDL	$~15, SP
 	MOVL	AX, 120(SP)		// save argc, argv away
@@ -279,18 +362,6 @@ TEXT runtime·gosave(SB), NOSPLIT, $0-4
 // restore state from Gobuf; longjmp
 TEXT runtime·gogo(SB), NOSPLIT, $8-4
 	MOVL	buf+0(FP), BX		// gobuf
-
-	// If ctxt is not nil, invoke deletion barrier before overwriting.
-	MOVL	gobuf_ctxt(BX), DX
-	TESTL	DX, DX
-	JZ	nilctxt
-	LEAL	gobuf_ctxt(BX), AX
-	MOVL	AX, 0(SP)
-	MOVL	$0, 4(SP)
-	CALL	runtime·writebarrierptr_prewrite(SB)
-	MOVL	buf+0(FP), BX
-
-nilctxt:
 	MOVL	gobuf_g(BX), DX
 	MOVL	0(DX), CX		// make sure g != nil
 	get_tls(CX)
@@ -403,11 +474,12 @@ switch:
 	RET
 
 noswitch:
-	// already on system stack, just call directly
+	// already on system stack; tail call the function
+	// Using a tail call here cleans up tracebacks since we won't stop
+	// at an intermediate systemstack.
 	MOVL	DI, DX
 	MOVL	0(DI), DI
-	CALL	DI
-	RET
+	JMP	DI
 
 /*
  * support for morestack
@@ -453,7 +525,7 @@ TEXT runtime·morestack(SB),NOSPLIT,$0-0
 	MOVL	SI, (g_sched+gobuf_g)(SI)
 	LEAL	4(SP), AX	// f's SP
 	MOVL	AX, (g_sched+gobuf_sp)(SI)
-	// newstack will fill gobuf.ctxt.
+	MOVL	DX, (g_sched+gobuf_ctxt)(SI)
 
 	// Call newstack on m->g0's stack.
 	MOVL	m_g0(BX), BP
@@ -461,10 +533,8 @@ TEXT runtime·morestack(SB),NOSPLIT,$0-0
 	MOVL	(g_sched+gobuf_sp)(BP), AX
 	MOVL	-4(AX), BX	// fault if CALL would, before smashing SP
 	MOVL	AX, SP
-	PUSHL	DX	// ctxt argument
 	CALL	runtime·newstack(SB)
 	MOVL	$0, 0x1003	// crash if newstack returns
-	POPL	DX	// keep balance check happy
 	RET
 
 TEXT runtime·morestack_noctxt(SB),NOSPLIT,$0-0
@@ -847,12 +917,6 @@ TEXT runtime·stackcheck(SB), NOSPLIT, $0-0
 	CMPL	SP, (g_stack+stack_lo)(AX)
 	JHI	2(PC)
 	INT	$3
-	RET
-
-TEXT runtime·getcallerpc(SB),NOSPLIT,$4-8
-	MOVL	argp+0(FP),AX		// addr of first arg
-	MOVL	-4(AX),AX		// get calling pc
-	MOVL	AX, ret+4(FP)
 	RET
 
 // func cputicks() int64

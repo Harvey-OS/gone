@@ -529,6 +529,18 @@ var remainder = []float64{
 	8.734595415957246977711748e-01,
 	1.314075231424398637614104e+00,
 }
+var round = []float64{
+	5,
+	8,
+	Copysign(0, -1),
+	-5,
+	10,
+	3,
+	5,
+	3,
+	2,
+	-9,
+}
 var signbit = []bool{
 	false,
 	false,
@@ -1755,6 +1767,37 @@ var pow10SC = []float64{
 	Inf(1),   // pow10(MaxInt32)
 }
 
+var vfroundSC = [][2]float64{
+	{0, 0},
+	{1.390671161567e-309, 0}, // denormal
+	{0.49999999999999994, 0}, // 0.5-epsilon
+	{0.5, 1},
+	{0.5000000000000001, 1}, // 0.5+epsilon
+	{-1.5, -2},
+	{-2.5, -3},
+	{NaN(), NaN()},
+	{Inf(1), Inf(1)},
+	{2251799813685249.5, 2251799813685250}, // 1 bit fraction
+	{2251799813685250.5, 2251799813685251},
+	{4503599627370495.5, 4503599627370496}, // 1 bit fraction, rounding to 0 bit fraction
+	{4503599627370497, 4503599627370497},   // large integer
+}
+var vfroundEvenSC = [][2]float64{
+	{0, 0},
+	{1.390671161567e-309, 0}, // denormal
+	{0.49999999999999994, 0}, // 0.5-epsilon
+	{0.5, 0},
+	{0.5000000000000001, 1}, // 0.5+epsilon
+	{-1.5, -2},
+	{-2.5, -2},
+	{NaN(), NaN()},
+	{Inf(1), Inf(1)},
+	{2251799813685249.5, 2251799813685250}, // 1 bit fraction
+	{2251799813685250.5, 2251799813685250},
+	{4503599627370495.5, 4503599627370496}, // 1 bit fraction, rounding to 0 bit fraction
+	{4503599627370497, 4503599627370497},   // large integer
+}
+
 var vfsignbitSC = []float64{
 	Inf(-1),
 	Copysign(0, -1),
@@ -2713,6 +2756,32 @@ func TestRemainder(t *testing.T) {
 	}
 }
 
+func TestRound(t *testing.T) {
+	for i := 0; i < len(vf); i++ {
+		if f := Round(vf[i]); !alike(round[i], f) {
+			t.Errorf("Round(%g) = %g, want %g", vf[i], f, round[i])
+		}
+	}
+	for i := 0; i < len(vfroundSC); i++ {
+		if f := Round(vfroundSC[i][0]); !alike(vfroundSC[i][1], f) {
+			t.Errorf("Round(%g) = %g, want %g", vfroundSC[i][0], f, vfroundSC[i][1])
+		}
+	}
+}
+
+func TestRoundToEven(t *testing.T) {
+	for i := 0; i < len(vf); i++ {
+		if f := RoundToEven(vf[i]); !alike(round[i], f) {
+			t.Errorf("RoundToEven(%g) = %g, want %g", vf[i], f, round[i])
+		}
+	}
+	for i := 0; i < len(vfroundEvenSC); i++ {
+		if f := RoundToEven(vfroundEvenSC[i][0]); !alike(vfroundEvenSC[i][1], f) {
+			t.Errorf("RoundToEven(%g) = %g, want %g", vfroundEvenSC[i][0], f, vfroundEvenSC[i][1])
+		}
+	}
+}
+
 func TestSignbit(t *testing.T) {
 	for i := 0; i < len(vf); i++ {
 		if f := Signbit(vf[i]); signbit[i] != f {
@@ -3029,10 +3098,12 @@ func BenchmarkCeil(b *testing.B) {
 	GlobalF = x
 }
 
+var copysignNeg = -1.0
+
 func BenchmarkCopysign(b *testing.B) {
 	x := 0.0
 	for i := 0; i < b.N; i++ {
-		x = Copysign(.5, -1)
+		x = Copysign(.5, copysignNeg)
 	}
 	GlobalF = x
 }
@@ -3125,10 +3196,12 @@ func BenchmarkExp2Go(b *testing.B) {
 	GlobalF = x
 }
 
+var absPos = .5
+
 func BenchmarkAbs(b *testing.B) {
 	x := 0.0
 	for i := 0; i < b.N; i++ {
-		x = Abs(.5)
+		x = Abs(absPos)
 	}
 	GlobalF = x
 
@@ -3137,7 +3210,7 @@ func BenchmarkAbs(b *testing.B) {
 func BenchmarkDim(b *testing.B) {
 	x := 0.0
 	for i := 0; i < b.N; i++ {
-		x = Dim(10, 3)
+		x = Dim(GlobalF, x)
 	}
 	GlobalF = x
 }
@@ -3360,6 +3433,24 @@ func BenchmarkPow10Neg(b *testing.B) {
 	GlobalF = x
 }
 
+var roundNeg = float64(-2.5)
+
+func BenchmarkRound(b *testing.B) {
+	x := 0.0
+	for i := 0; i < b.N; i++ {
+		x = Round(roundNeg)
+	}
+	GlobalF = x
+}
+
+func BenchmarkRoundToEven(b *testing.B) {
+	x := 0.0
+	for i := 0; i < b.N; i++ {
+		x = RoundToEven(roundNeg)
+	}
+	GlobalF = x
+}
+
 func BenchmarkRemainder(b *testing.B) {
 	x := 0.0
 	for i := 0; i < b.N; i++ {
@@ -3368,10 +3459,12 @@ func BenchmarkRemainder(b *testing.B) {
 	GlobalF = x
 }
 
+var signbitPos = 2.5
+
 func BenchmarkSignbit(b *testing.B) {
 	x := false
 	for i := 0; i < b.N; i++ {
-		x = Signbit(2.5)
+		x = Signbit(signbitPos)
 	}
 	GlobalB = x
 }

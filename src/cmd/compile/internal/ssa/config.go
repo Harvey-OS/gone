@@ -36,6 +36,7 @@ type Config struct {
 	useSSE          bool          // Use SSE for non-float operations
 	nacl            bool          // GOOS=nacl
 	use387          bool          // GO386=387
+	SoftFloat       bool          //
 	NeedsFpScratch  bool          // No direct move between GP and FP register sets
 	BigEndian       bool          //
 	sparsePhiCutoff uint64        // Sparse phi location algorithm used above this #blocks*#variables score
@@ -59,6 +60,7 @@ type Types struct {
 	Int        *types.Type
 	Float32    *types.Type
 	Float64    *types.Type
+	UInt       *types.Type
 	Uintptr    *types.Type
 	String     *types.Type
 	BytePtr    *types.Type // TODO: use unsafe.Pointer instead?
@@ -87,7 +89,7 @@ type Logger interface {
 
 	// Forwards the Debug flags from gc
 	Debug_checknil() bool
-	Debug_wb() bool
+	Debug_eagerwb() bool
 }
 
 type Frontend interface {
@@ -130,14 +132,27 @@ type Frontend interface {
 
 	// UseWriteBarrier returns whether write barrier is enabled
 	UseWriteBarrier() bool
+
+	// SetWBPos indicates that a write barrier has been inserted
+	// in this function at position pos.
+	SetWBPos(pos src.XPos)
 }
 
-// interface used to hold *gc.Node. We'd use *gc.Node directly but
-// that would lead to an import cycle.
+// interface used to hold a *gc.Node (a stack variable).
+// We'd use *gc.Node directly but that would lead to an import cycle.
 type GCNode interface {
 	Typ() *types.Type
 	String() string
+	StorageClass() StorageClass
 }
+
+type StorageClass uint8
+
+const (
+	ClassAuto     StorageClass = iota // local stack variable
+	ClassParam                        // argument
+	ClassParamOut                     // return value
+)
 
 // NewConfig returns a new configuration object for the given architecture.
 func NewConfig(arch string, types Types, ctxt *obj.Link, optimize bool) *Config {

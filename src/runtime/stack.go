@@ -913,9 +913,12 @@ func round2(x int32) int32 {
 // g->atomicstatus will be Grunning or Gscanrunning upon entry.
 // If the GC is trying to stop this g then it will set preemptscan to true.
 //
-// ctxt is the value of the context register on morestack. newstack
-// will write it to g.sched.ctxt.
-func newstack(ctxt unsafe.Pointer) {
+// This must be nowritebarrierrec because it can be called as part of
+// stack growth from other nowritebarrierrec functions, but the
+// compiler doesn't check this.
+//
+//go:nowritebarrierrec
+func newstack() {
 	thisg := getg()
 	// TODO: double check all gp. shouldn't be getg().
 	if thisg.m.morebuf.g.ptr().stackguard0 == stackFork {
@@ -929,19 +932,24 @@ func newstack(ctxt unsafe.Pointer) {
 	}
 
 	gp := thisg.m.curg
-	// Write ctxt to gp.sched. We do this here instead of in
-	// morestack so it has the necessary write barrier.
-	gp.sched.ctxt = ctxt
 
 	if thisg.m.curg.throwsplit {
 		// Update syscallsp, syscallpc in case traceback uses them.
 		morebuf := thisg.m.morebuf
 		gp.syscallsp = morebuf.sp
 		gp.syscallpc = morebuf.pc
-		print("runtime: newstack sp=", hex(gp.sched.sp), " stack=[", hex(gp.stack.lo), ", ", hex(gp.stack.hi), "]\n",
+		pcname, pcoff := "(unknown)", uintptr(0)
+		f := findfunc(gp.sched.pc)
+		if f.valid() {
+			pcname = funcname(f)
+			pcoff = gp.sched.pc - f.entry
+		}
+		print("runtime: newstack at ", pcname, "+", hex(pcoff),
+			" sp=", hex(gp.sched.sp), " stack=[", hex(gp.stack.lo), ", ", hex(gp.stack.hi), "]\n",
 			"\tmorebuf={pc:", hex(morebuf.pc), " sp:", hex(morebuf.sp), " lr:", hex(morebuf.lr), "}\n",
 			"\tsched={pc:", hex(gp.sched.pc), " sp:", hex(gp.sched.sp), " lr:", hex(gp.sched.lr), " ctxt:", gp.sched.ctxt, "}\n")
 
+		thisg.m.traceback = 2 // Include runtime frames
 		traceback(morebuf.pc, morebuf.sp, morebuf.lr, gp)
 		throw("runtime: stack split at bad time")
 	}

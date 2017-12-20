@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"sync"
 
 	"cmd/go/internal/base"
@@ -24,7 +25,7 @@ func init() {
 var CmdFmt = &base.Command{
 	Run:       runFmt,
 	UsageLine: "fmt [-n] [-x] [packages]",
-	Short:     "run gofmt on package sources",
+	Short:     "gofmt (reformat) package sources",
 	Long: `
 Fmt runs the command 'gofmt -l -w' on the packages named
 by the import paths. It prints the names of the files that are modified.
@@ -55,11 +56,20 @@ func runFmt(cmd *base.Command, args []string) {
 			}
 		}()
 	}
-	for _, pkg := range load.Packages(args) {
+	for _, pkg := range load.PackagesAndErrors(args) {
+		if pkg.Error != nil {
+			if strings.HasPrefix(pkg.Error.Err, "build constraints exclude all Go files") {
+				// Skip this error, as we will format
+				// all files regardless.
+			} else {
+				base.Errorf("can't load package: %s", pkg.Error)
+				continue
+			}
+		}
 		// Use pkg.gofiles instead of pkg.Dir so that
 		// the command only applies to this package,
 		// not to packages in subdirectories.
-		files := base.FilterDotUnderscoreFiles(base.RelPaths(pkg.Internal.AllGoFiles))
+		files := base.RelPaths(pkg.InternalAllGoFiles())
 		for _, file := range files {
 			fileC <- file
 		}

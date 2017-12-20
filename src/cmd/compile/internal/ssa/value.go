@@ -6,10 +6,10 @@ package ssa
 
 import (
 	"cmd/compile/internal/types"
-	"cmd/internal/obj"
 	"cmd/internal/src"
 	"fmt"
 	"math"
+	"sort"
 	"strings"
 )
 
@@ -121,6 +121,7 @@ func (v *Value) LongString() string {
 		}
 	}
 	if len(names) != 0 {
+		sort.Strings(names) // Otherwise a source of variation in debugging output.
 		s += " (" + strings.Join(names, ", ") + ")"
 	}
 	return s
@@ -241,7 +242,13 @@ func (v *Value) copyInto(b *Block) *Value {
 // The copied value receives no source code position to avoid confusing changes
 // in debugger information (the intended user is the register allocator).
 func (v *Value) copyIntoNoXPos(b *Block) *Value {
-	c := b.NewValue0(src.NoXPos, v.Op, v.Type) // Lose the position, this causes line number churn otherwise.
+	return v.copyIntoWithXPos(b, src.NoXPos)
+}
+
+// copyIntoWithXPos makes a new value identical to v and adds it to the end of b.
+// The supplied position is used as the position of the new value.
+func (v *Value) copyIntoWithXPos(b *Block, pos src.XPos) *Value {
+	c := b.NewValue0(pos, v.Op, v.Type)
 	c.Aux = v.Aux
 	c.AuxInt = v.AuxInt
 	c.AddArgs(v.Args...)
@@ -262,38 +269,6 @@ func (v *Value) Fatalf(msg string, args ...interface{}) {
 // isGenericIntConst returns whether v is a generic integer constant.
 func (v *Value) isGenericIntConst() bool {
 	return v != nil && (v.Op == OpConst64 || v.Op == OpConst32 || v.Op == OpConst16 || v.Op == OpConst8)
-}
-
-// ExternSymbol is an aux value that encodes a variable's
-// constant offset from the static base pointer.
-type ExternSymbol struct {
-	Sym *obj.LSym
-	// Note: the offset for an external symbol is not
-	// calculated until link time.
-}
-
-// ArgSymbol is an aux value that encodes an argument or result
-// variable's constant offset from FP (FP = SP + framesize).
-type ArgSymbol struct {
-	Node GCNode // A *gc.Node referring to the argument/result variable.
-}
-
-// AutoSymbol is an aux value that encodes a local variable's
-// constant offset from SP.
-type AutoSymbol struct {
-	Node GCNode // A *gc.Node referring to a local (auto) variable.
-}
-
-func (s *ExternSymbol) String() string {
-	return s.Sym.String()
-}
-
-func (s *ArgSymbol) String() string {
-	return s.Node.String()
-}
-
-func (s *AutoSymbol) String() string {
-	return s.Node.String()
 }
 
 // Reg returns the register assigned to v, in cmd/internal/obj/$ARCH numbering.
@@ -346,4 +321,15 @@ func (v *Value) MemoryArg() *Value {
 		return m
 	}
 	return nil
+}
+
+// LackingPos indicates whether v is a value that is unlikely to have a correct
+// position assigned to it.  Ignoring such values leads to more user-friendly positions
+// assigned to nearby values and the blocks containing them.
+func (v *Value) LackingPos() bool {
+	// The exact definition of LackingPos is somewhat heuristically defined and may change
+	// in the future, for example if some of these operations are generated more carefully
+	// with respect to their source position.
+	return v.Op == OpVarDef || v.Op == OpVarKill || v.Op == OpVarLive || v.Op == OpPhi ||
+		(v.Op == OpFwdRef || v.Op == OpCopy) && v.Type == types.TypeMem
 }

@@ -100,7 +100,7 @@ func main() {
 	//
 	// The lock file is never deleted, to avoid concurrent locks on distinct
 	// files with the same path.
-	lockName := filepath.Join(os.TempDir(), "go_darwin_arm_exec.lock")
+	lockName := filepath.Join(os.TempDir(), "go_darwin_arm_exec-"+deviceID+".lock")
 	lock, err = os.OpenFile(lockName, os.O_CREATE|os.O_RDONLY, 0666)
 	if err != nil {
 		log.Fatal(err)
@@ -232,6 +232,16 @@ func run(bin string, args []string) (err error) {
 		os.Stdout.Write(b)
 	}()
 
+	cond := func(out *buf) bool {
+		i0 := s.out.LastIndex([]byte("(lldb)"))
+		i1 := s.out.LastIndex([]byte("fruitstrap"))
+		i2 := s.out.LastIndex([]byte(" connect"))
+		return i0 > 0 && i1 > 0 && i2 > 0
+	}
+	if err := s.wait("lldb start", cond, 15*time.Second); err != nil {
+		panic(waitPanic{err})
+	}
+
 	// Script LLDB. Oh dear.
 	s.do(`process handle SIGHUP  --stop false --pass true --notify false`)
 	s.do(`process handle SIGPIPE --stop false --pass true --notify false`)
@@ -348,15 +358,6 @@ func newSession(appdir string, args []string, opts options) (*lldbSession, error
 		s.exited <- s.cmd.Wait()
 	}()
 
-	cond := func(out *buf) bool {
-		i0 := s.out.LastIndex([]byte("(lldb)"))
-		i1 := s.out.LastIndex([]byte("fruitstrap"))
-		i2 := s.out.LastIndex([]byte(" connect"))
-		return i0 > 0 && i1 > 0 && i2 > 0
-	}
-	if err := s.wait("lldb start", cond, 15*time.Second); err != nil {
-		panic(waitPanic{err})
-	}
 	return s, nil
 }
 
@@ -385,6 +386,9 @@ func (s *lldbSession) wait(reason string, cond func(out *buf) bool, extraTimeout
 			}
 			return fmt.Errorf("test timeout (%s)", reason)
 		case <-doTimedout:
+			if p := s.cmd.Process; p != nil {
+				p.Kill()
+			}
 			return fmt.Errorf("command timeout (%s for %v)", reason, doTimeout)
 		case err := <-s.exited:
 			return fmt.Errorf("exited (%s: %v)", reason, err)

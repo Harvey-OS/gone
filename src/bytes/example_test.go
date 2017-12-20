@@ -153,6 +153,14 @@ func ExampleCount() {
 	// 5
 }
 
+func ExampleEqual() {
+	fmt.Println(bytes.Equal([]byte("Go"), []byte("Go")))
+	fmt.Println(bytes.Equal([]byte("Go"), []byte("C++")))
+	// Output:
+	// true
+	// false
+}
+
 func ExampleEqualFold() {
 	fmt.Println(bytes.EqualFold([]byte("Go"), []byte("go")))
 	// Output: true
@@ -183,6 +191,14 @@ func ExampleHasSuffix() {
 func ExampleIndex() {
 	fmt.Println(bytes.Index([]byte("chicken"), []byte("ken")))
 	fmt.Println(bytes.Index([]byte("chicken"), []byte("dmr")))
+	// Output:
+	// 4
+	// -1
+}
+
+func ExampleIndexByte() {
+	fmt.Println(bytes.IndexByte([]byte("chicken"), byte('k')))
+	fmt.Println(bytes.IndexByte([]byte("chicken"), byte('g')))
 	// Output:
 	// 4
 	// -1
@@ -367,9 +383,9 @@ func ExampleMap() {
 }
 
 func ExampleTrimLeft() {
-	fmt.Print(string(bytes.TrimLeft([]byte("+ 005400"), "+0 ")))
+	fmt.Print(string(bytes.TrimLeft([]byte("453gopher8257"), "0123456789")))
 	// Output:
-	// 5400
+	// gopher8257
 }
 
 func ExampleTrimLeftFunc() {
@@ -411,4 +427,12 @@ func ExampleToUpper() {
 func ExampleToLower() {
 	fmt.Printf("%s", bytes.ToLower([]byte("Gopher")))
 	// Output: gopher
+}
+
+func ExampleReader_Len() {
+	fmt.Println(bytes.NewReader([]byte("Hi!")).Len())
+	fmt.Println(bytes.NewReader([]byte("こんにちは!")).Len())
+	// Output:
+	// 3
+	// 16
 }

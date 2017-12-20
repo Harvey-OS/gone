@@ -91,9 +91,12 @@ func panicnildottype(want *byte)
 func ifaceeq(tab *uintptr, x, y unsafe.Pointer) (ret bool)
 func efaceeq(typ *uintptr, x, y unsafe.Pointer) (ret bool)
 
+func fastrand() uint32
+
 // *byte is really *runtime.Type
 func makemap64(mapType *byte, hint int64, mapbuf *any) (hmap map[any]any)
 func makemap(mapType *byte, hint int, mapbuf *any) (hmap map[any]any)
+func makemap_small() (hmap map[any]any)
 func mapaccess1(mapType *byte, hmap map[any]any, key *any) (val *any)
 func mapaccess1_fast32(mapType *byte, hmap map[any]any, key any) (val *any)
 func mapaccess1_fast64(mapType *byte, hmap map[any]any, key any) (val *any)
@@ -106,7 +109,9 @@ func mapaccess2_faststr(mapType *byte, hmap map[any]any, key any) (val *any, pre
 func mapaccess2_fat(mapType *byte, hmap map[any]any, key *any, zero *byte) (val *any, pres bool)
 func mapassign(mapType *byte, hmap map[any]any, key *any) (val *any)
 func mapassign_fast32(mapType *byte, hmap map[any]any, key any) (val *any)
+func mapassign_fast32ptr(mapType *byte, hmap map[any]any, key any) (val *any)
 func mapassign_fast64(mapType *byte, hmap map[any]any, key any) (val *any)
+func mapassign_fast64ptr(mapType *byte, hmap map[any]any, key any) (val *any)
 func mapassign_faststr(mapType *byte, hmap map[any]any, key any) (val *any)
 func mapiterinit(mapType *byte, hmap map[any]any, hiter *any)
 func mapdelete(mapType *byte, hmap map[any]any, key *any)
@@ -191,3 +196,4 @@ func msanwrite(addr, size uintptr)
 
 // architecture variants
 var support_popcnt bool
+var support_sse41 bool

@@ -115,7 +115,7 @@ var (
 	errTagSyntax      = errors.New("bad syntax for struct tag pair")
 	errTagKeySyntax   = errors.New("bad syntax for struct tag key")
 	errTagValueSyntax = errors.New("bad syntax for struct tag value")
-	errTagValueSpace  = errors.New("suspicious space found in struct tag value")
+	errTagValueSpace  = errors.New("suspicious space in struct tag value")
 	errTagSpace       = errors.New("key:\"value\" pairs not separated by spaces")
 )
 
@@ -185,7 +185,31 @@ func validateStructTag(tag string) error {
 			continue
 		}
 
-		if key == "json" {
+		switch key {
+		case "xml":
+			// If the first or last character in the XML tag is a space, it is
+			// suspicious.
+			if strings.Trim(value, " ") != value {
+				return errTagValueSpace
+			}
+
+			// If there are multiple spaces, they are suspicious.
+			if strings.Count(value, " ") > 1 {
+				return errTagValueSpace
+			}
+
+			// If there is no comma, skip the rest of the checks.
+			comma := strings.IndexRune(value, ',')
+			if comma < 0 {
+				continue
+			}
+
+			// If the character before a comma is a space, this is suspicious.
+			if comma > 0 && value[comma-1] == ' ' {
+				return errTagValueSpace
+			}
+			value = value[comma+1:]
+		case "json":
 			// JSON allows using spaces in the name, so skip it.
 			comma := strings.IndexRune(value, ',')
 			if comma < 0 {

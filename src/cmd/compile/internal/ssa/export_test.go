@@ -75,6 +75,10 @@ func (d *DummyAuto) String() string {
 	return d.s
 }
 
+func (d *DummyAuto) StorageClass() StorageClass {
+	return ClassAuto
+}
+
 func (DummyFrontend) StringData(s string) interface{} {
 	return nil
 }
@@ -121,6 +125,8 @@ func (d DummyFrontend) Syslook(s string) *obj.LSym {
 func (DummyFrontend) UseWriteBarrier() bool {
 	return true // only writebarrier_test cares
 }
+func (DummyFrontend) SetWBPos(pos src.XPos) {
+}
 
 func (d DummyFrontend) Logf(msg string, args ...interface{}) { d.t.Logf(msg, args...) }
 func (d DummyFrontend) Log() bool                            { return true }
@@ -128,7 +134,7 @@ func (d DummyFrontend) Log() bool                            { return true }
 func (d DummyFrontend) Fatalf(_ src.XPos, msg string, args ...interface{}) { d.t.Fatalf(msg, args...) }
 func (d DummyFrontend) Warnl(_ src.XPos, msg string, args ...interface{})  { d.t.Logf(msg, args...) }
 func (d DummyFrontend) Debug_checknil() bool                               { return false }
-func (d DummyFrontend) Debug_wb() bool                                     { return false }
+func (d DummyFrontend) Debug_eagerwb() bool                                { return false }
 
 var dummyTypes Types
 

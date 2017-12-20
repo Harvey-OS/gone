@@ -15,11 +15,13 @@ var X86 x86
 type x86 struct {
 	_            [CacheLineSize]byte
 	HasAES       bool
+	HasADX       bool
 	HasAVX       bool
 	HasAVX2      bool
 	HasBMI1      bool
 	HasBMI2      bool
 	HasERMS      bool
+	HasFMA       bool
 	HasOSXSAVE   bool
 	HasPCLMULQDQ bool
 	HasPOPCNT    bool
@@ -53,5 +55,23 @@ type ppc64 struct {
 	HasSCV     bool // Syscall vectored (requires kernel enablement)
 	IsPOWER8   bool // ISA v2.07 (POWER8)
 	IsPOWER9   bool // ISA v3.00 (POWER9)
+	_          [CacheLineSize]byte
+}
+
+var ARM64 arm64
+
+// The booleans in arm64 contain the correspondingly named cpu feature bit.
+// The struct is padded to avoid false sharing.
+type arm64 struct {
+	_          [CacheLineSize]byte
+	HasFP      bool
+	HasASIMD   bool
+	HasEVTSTRM bool
+	HasAES     bool
+	HasPMULL   bool
+	HasSHA1    bool
+	HasSHA2    bool
+	HasCRC32   bool
+	HasATOMICS bool
 	_          [CacheLineSize]byte
 }
