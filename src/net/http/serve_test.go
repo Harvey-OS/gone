@@ -379,6 +379,18 @@ func TestServeMuxHandler(t *testing.T) {
 	}
 }
 
+// Issue 24297
+func TestServeMuxHandleFuncWithNilHandler(t *testing.T) {
+	setParallel(t)
+	defer func() {
+		if err := recover(); err == nil {
+			t.Error("expected call to mux.HandleFunc to panic")
+		}
+	}()
+	mux := NewServeMux()
+	mux.HandleFunc("/", nil)
+}
+
 var serveMuxTests2 = []struct {
 	method  string
 	host    string
@@ -521,6 +533,74 @@ func TestServeWithSlashRedirectKeepsQueryString(t *testing.T) {
 			t.Errorf("#%d: Body = %q; want = %q", i, got, want)
 		}
 	}
+}
+
+func TestServeWithSlashRedirectForHostPatterns(t *testing.T) {
+	setParallel(t)
+	defer afterTest(t)
+
+	mux := NewServeMux()
+	mux.Handle("example.com/pkg/foo/", stringHandler("example.com/pkg/foo/"))
+	mux.Handle("example.com/pkg/bar", stringHandler("example.com/pkg/bar"))
+	mux.Handle("example.com/pkg/bar/", stringHandler("example.com/pkg/bar/"))
+	mux.Handle("example.com:3000/pkg/connect/", stringHandler("example.com:3000/pkg/connect/"))
+	mux.Handle("example.com:9000/", stringHandler("example.com:9000/"))
+	mux.Handle("/pkg/baz/", stringHandler("/pkg/baz/"))
+
+	tests := []struct {
+		method string
+		url    string
+		code   int
+		loc    string
+		want   string
+	}{
+		{"GET", "http://example.com/", 404, "", ""},
+		{"GET", "http://example.com/pkg/foo", 301, "/pkg/foo/", ""},
+		{"GET", "http://example.com/pkg/bar", 200, "", "example.com/pkg/bar"},
+		{"GET", "http://example.com/pkg/bar/", 200, "", "example.com/pkg/bar/"},
+		{"GET", "http://example.com/pkg/baz", 301, "/pkg/baz/", ""},
+		{"GET", "http://example.com:3000/pkg/foo", 301, "/pkg/foo/", ""},
+		{"CONNECT", "http://example.com/", 404, "", ""},
+		{"CONNECT", "http://example.com:3000/", 404, "", ""},
+		{"CONNECT", "http://example.com:9000/", 200, "", "example.com:9000/"},
+		{"CONNECT", "http://example.com/pkg/foo", 301, "/pkg/foo/", ""},
+		{"CONNECT", "http://example.com:3000/pkg/foo", 404, "", ""},
+		{"CONNECT", "http://example.com:3000/pkg/baz", 301, "/pkg/baz/", ""},
+		{"CONNECT", "http://example.com:3000/pkg/connect", 301, "/pkg/connect/", ""},
+	}
+
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+
+	for i, tt := range tests {
+		req, _ := NewRequest(tt.method, tt.url, nil)
+		w := httptest.NewRecorder()
+		mux.ServeHTTP(w, req)
+
+		if got, want := w.Code, tt.code; got != want {
+			t.Errorf("#%d: Status = %d; want = %d", i, got, want)
+		}
+
+		if tt.code == 301 {
+			if got, want := w.HeaderMap.Get("Location"), tt.loc; got != want {
+				t.Errorf("#%d: Location = %q; want = %q", i, got, want)
+			}
+		} else {
+			if got, want := w.HeaderMap.Get("Result"), tt.want; got != want {
+				t.Errorf("#%d: Result = %q; want = %q", i, got, want)
+			}
+		}
+	}
+}
+
+func TestShouldRedirectConcurrency(t *testing.T) {
+	setParallel(t)
+	defer afterTest(t)
+
+	mux := NewServeMux()
+	ts := httptest.NewServer(mux)
+	defer ts.Close()
+	mux.HandleFunc("/", func(w ResponseWriter, r *Request) {})
 }
 
 func BenchmarkServeMux(b *testing.B) {
@@ -873,7 +953,7 @@ func TestOnlyWriteTimeout(t *testing.T) {
 		if err == nil {
 			t.Errorf("expected an error from Get request")
 		}
-	case <-time.After(5 * time.Second):
+	case <-time.After(10 * time.Second):
 		t.Fatal("timeout waiting for Get error")
 	}
 	if err := <-afterTimeoutErrc; err == nil {

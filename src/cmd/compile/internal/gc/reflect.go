@@ -42,37 +42,34 @@ var (
 )
 
 type Sig struct {
-	name   string
-	pkg    *types.Pkg
-	isym   *types.Sym
-	tsym   *types.Sym
-	type_  *types.Type
-	mtype  *types.Type
-	offset int32
+	name  string
+	pkg   *types.Pkg
+	isym  *types.Sym
+	tsym  *types.Sym
+	type_ *types.Type
+	mtype *types.Type
 }
 
-// siglt sorts method signatures by name, then package path.
+// siglt sorts method signatures by name with exported methods first,
+// and then non-exported methods by their package path.
 func siglt(a, b *Sig) bool {
+	if (a.pkg == nil) != (b.pkg == nil) {
+		return a.pkg == nil
+	}
 	if a.name != b.name {
 		return a.name < b.name
 	}
-	if a.pkg == b.pkg {
-		return false
+	if a.pkg != nil && a.pkg != b.pkg {
+		return a.pkg.Path < b.pkg.Path
 	}
-	if a.pkg == nil {
-		return true
-	}
-	if b.pkg == nil {
-		return false
-	}
-	return a.pkg.Path < b.pkg.Path
+	return false
 }
 
 // Builds a type representing a Bucket structure for
 // the given map type. This type is not visible to users -
 // we include only enough information to generate a correct GC
 // program for it.
-// Make sure this stays in sync with ../../../../runtime/hashmap.go!
+// Make sure this stays in sync with ../../../../runtime/map.go!
 const (
 	BUCKETSIZE = 8
 	MAXKEYSIZE = 128
@@ -156,7 +153,7 @@ func bmap(t *types.Type) *types.Type {
 	// buckets can be marked as having no pointers.
 	// Arrange for the bucket to have no pointers by changing
 	// the type of the overflow field to uintptr in this case.
-	// See comment on hmap.overflow in ../../../../runtime/hashmap.go.
+	// See comment on hmap.overflow in ../../../../runtime/map.go.
 	otyp := types.NewPtr(bucket)
 	if !types.Haspointers(valtype) && !types.Haspointers(keytype) {
 		otyp = types.Types[TUINTPTR]
@@ -226,7 +223,7 @@ func bmap(t *types.Type) *types.Type {
 }
 
 // hmap builds a type representing a Hmap structure for the given map type.
-// Make sure this stays in sync with ../../../../runtime/hashmap.go.
+// Make sure this stays in sync with ../../../../runtime/map.go.
 func hmap(t *types.Type) *types.Type {
 	if t.MapType().Hmap != nil {
 		return t.MapType().Hmap
@@ -246,7 +243,7 @@ func hmap(t *types.Type) *types.Type {
 	//    nevacuate  uintptr
 	//    extra      unsafe.Pointer // *mapextra
 	// }
-	// must match ../../../../runtime/hashmap.go:hmap.
+	// must match ../../../../runtime/map.go:hmap.
 	fields := []*types.Field{
 		makefield("count", types.Types[TINT]),
 		makefield("flags", types.Types[TUINT8]),
@@ -276,7 +273,7 @@ func hmap(t *types.Type) *types.Type {
 }
 
 // hiter builds a type representing an Hiter structure for the given map type.
-// Make sure this stays in sync with ../../../../runtime/hashmap.go.
+// Make sure this stays in sync with ../../../../runtime/map.go.
 func hiter(t *types.Type) *types.Type {
 	if t.MapType().Hiter != nil {
 		return t.MapType().Hiter
@@ -303,7 +300,7 @@ func hiter(t *types.Type) *types.Type {
 	//    bucket      uintptr
 	//    checkBucket uintptr
 	// }
-	// must match ../../../../runtime/hashmap.go:hiter.
+	// must match ../../../../runtime/map.go:hiter.
 	fields := []*types.Field{
 		makefield("key", types.NewPtr(t.Key())), // Used in range.go for TMAP.
 		makefield("val", types.NewPtr(t.Val())), // Used in range.go for TMAP.
@@ -345,9 +342,8 @@ func methodfunc(f *types.Type, receiver *types.Type) *types.Type {
 		in = append(in, d)
 	}
 
-	var d *Node
 	for _, t := range f.Params().Fields().Slice() {
-		d = nod(ODCLFIELD, nil, nil)
+		d := nod(ODCLFIELD, nil, nil)
 		d.Type = t.Type
 		d.SetIsddd(t.Isddd())
 		in = append(in, d)
@@ -355,7 +351,7 @@ func methodfunc(f *types.Type, receiver *types.Type) *types.Type {
 
 	var out []*Node
 	for _, t := range f.Results().Fields().Slice() {
-		d = nod(ODCLFIELD, nil, nil)
+		d := nod(ODCLFIELD, nil, nil)
 		d.Type = t.Type
 		out = append(out, d)
 	}
@@ -403,19 +399,14 @@ func methods(t *types.Type) []*Sig {
 
 		method := f.Sym
 		if method == nil {
-			continue
+			break
 		}
 
 		// get receiver type for this particular method.
 		// if pointer receiver but non-pointer t and
 		// this is not an embedded pointer inside a struct,
 		// method does not apply.
-		this := f.Type.Recv().Type
-
-		if this.IsPtr() && this.Elem() == t {
-			continue
-		}
-		if this.IsPtr() && !t.IsPtr() && f.Embedded != 2 && !isifacemethod(f.Type) {
+		if !isMethodApplicable(t, f) {
 			continue
 		}
 
@@ -430,16 +421,18 @@ func methods(t *types.Type) []*Sig {
 			sig.pkg = method.Pkg
 		}
 
-		sig.isym = methodsym(method, it, true)
-		sig.tsym = methodsym(method, t, false)
+		sig.isym = methodSym(it, method)
+		sig.tsym = methodSym(t, method)
 		sig.type_ = methodfunc(f.Type, t)
 		sig.mtype = methodfunc(f.Type, nil)
 
+		this := f.Type.Recv().Type
+
 		if !sig.isym.Siggen() {
 			sig.isym.SetSiggen(true)
-			if !eqtype(this, it) || this.Width < int64(Widthptr) {
+			if !eqtype(this, it) {
 				compiling_wrappers = true
-				genwrapper(it, f, sig.isym, true)
+				genwrapper(it, f, sig.isym)
 				compiling_wrappers = false
 			}
 		}
@@ -448,13 +441,12 @@ func methods(t *types.Type) []*Sig {
 			sig.tsym.SetSiggen(true)
 			if !eqtype(this, t) {
 				compiling_wrappers = true
-				genwrapper(t, f, sig.tsym, false)
+				genwrapper(t, f, sig.tsym)
 				compiling_wrappers = false
 			}
 		}
 	}
 
-	obj.SortSlice(ms, func(i, j int) bool { return siglt(ms[i], ms[j]) })
 	return ms
 }
 
@@ -477,7 +469,6 @@ func imethods(t *types.Type) []*Sig {
 		}
 
 		sig.mtype = f.Type
-		sig.offset = 0
 		sig.type_ = methodfunc(f.Type, nil)
 
 		if n := len(methods); n > 0 {
@@ -497,10 +488,10 @@ func imethods(t *types.Type) []*Sig {
 		// IfaceType.Method is not in the reflect data.
 		// Generate the method body, so that compiled
 		// code can refer to it.
-		isym := methodsym(method, t, false)
+		isym := methodSym(t, method)
 		if !isym.Siggen() {
 			isym.SetSiggen(true)
-			genwrapper(t, f, isym, false)
+			genwrapper(t, f, isym)
 		}
 	}
 
@@ -564,11 +555,11 @@ func dgopkgpathOff(s *obj.LSym, ot int, pkg *types.Pkg) int {
 		// Every package that imports this one directly defines the symbol.
 		// See also https://groups.google.com/forum/#!topic/golang-dev/myb9s53HxGQ.
 		ns := Ctxt.Lookup(`type..importpath."".`)
-		return dsymptrOff(s, ot, ns, 0)
+		return dsymptrOff(s, ot, ns)
 	}
 
 	dimportpath(pkg)
-	return dsymptrOff(s, ot, pkg.Pathsym, 0)
+	return dsymptrOff(s, ot, pkg.Pathsym)
 }
 
 // dnameField dumps a reflect.name for a struct field.
@@ -684,12 +675,13 @@ func dextratype(lsym *obj.LSym, ot int, t *types.Type, dataAdd int) int {
 	if mcount != int(uint16(mcount)) {
 		Fatalf("too many methods on %v: %d", t, mcount)
 	}
+	xcount := sort.Search(mcount, func(i int) bool { return m[i].pkg != nil })
 	if dataAdd != int(uint32(dataAdd)) {
 		Fatalf("methods are too far away on %v: %d", t, dataAdd)
 	}
 
 	ot = duint16(lsym, ot, uint16(mcount))
-	ot = duint16(lsym, ot, 0)
+	ot = duint16(lsym, ot, uint16(xcount))
 	ot = duint32(lsym, ot, uint32(dataAdd))
 	ot = duint32(lsym, ot, 0)
 	return ot
@@ -723,7 +715,7 @@ func dextratypeData(lsym *obj.LSym, ot int, t *types.Type) int {
 		}
 		nsym := dname(a.name, "", pkg, exported)
 
-		ot = dsymptrOff(lsym, ot, nsym, 0)
+		ot = dsymptrOff(lsym, ot, nsym)
 		ot = dmethodptrOff(lsym, ot, dtypesym(a.mtype))
 		ot = dmethodptrOff(lsym, ot, a.isym.Linksym())
 		ot = dmethodptrOff(lsym, ot, a.tsym.Linksym())
@@ -794,6 +786,7 @@ func typeptrdata(t *types.Type) int64 {
 	case TINTER:
 		// struct { Itab *tab;	void *data; } or
 		// struct { Type *type; void *data; }
+		// Note: see comment in plive.go:onebitwalktype1.
 		return 2 * int64(Widthptr)
 
 	case TSLICE:
@@ -840,11 +833,7 @@ var (
 )
 
 // dcommontype dumps the contents of a reflect.rtype (runtime._type).
-func dcommontype(lsym *obj.LSym, ot int, t *types.Type) int {
-	if ot != 0 {
-		Fatalf("dcommontype %d", ot)
-	}
-
+func dcommontype(lsym *obj.LSym, t *types.Type) int {
 	sizeofAlg := 2 * Widthptr
 	if algarray == nil {
 		algarray = sysfunc("algarray")
@@ -883,6 +872,7 @@ func dcommontype(lsym *obj.LSym, ot int, t *types.Type) int {
 	//		str           nameOff
 	//		ptrToThis     typeOff
 	//	}
+	ot := 0
 	ot = duintptr(lsym, ot, uint64(t.Width))
 	ot = duintptr(lsym, ot, uint64(ptrdata))
 	ot = duint32(lsym, ot, typehash(t))
@@ -947,14 +937,14 @@ func dcommontype(lsym *obj.LSym, ot int, t *types.Type) int {
 	ot = dsymptr(lsym, ot, gcsym, 0) // gcdata
 
 	nsym := dname(p, "", nil, exported)
-	ot = dsymptrOff(lsym, ot, nsym, 0) // str
+	ot = dsymptrOff(lsym, ot, nsym) // str
 	// ptrToThis
 	if sptr == nil {
 		ot = duint32(lsym, ot, 0)
 	} else if sptrWeak {
 		ot = dsymptrWeakOff(lsym, ot, sptr)
 	} else {
-		ot = dsymptrOff(lsym, ot, sptr, 0)
+		ot = dsymptrOff(lsym, ot, sptr)
 	}
 
 	return ot
@@ -1185,7 +1175,7 @@ func dtypesym(t *types.Type) *obj.LSym {
 	ot := 0
 	switch t.Etype {
 	default:
-		ot = dcommontype(lsym, ot, t)
+		ot = dcommontype(lsym, t)
 		ot = dextratype(lsym, ot, t, 0)
 
 	case TARRAY:
@@ -1193,7 +1183,7 @@ func dtypesym(t *types.Type) *obj.LSym {
 		s1 := dtypesym(t.Elem())
 		t2 := types.NewSlice(t.Elem())
 		s2 := dtypesym(t2)
-		ot = dcommontype(lsym, ot, t)
+		ot = dcommontype(lsym, t)
 		ot = dsymptr(lsym, ot, s1, 0)
 		ot = dsymptr(lsym, ot, s2, 0)
 		ot = duintptr(lsym, ot, uint64(t.NumElem()))
@@ -1202,14 +1192,14 @@ func dtypesym(t *types.Type) *obj.LSym {
 	case TSLICE:
 		// ../../../../runtime/type.go:/sliceType
 		s1 := dtypesym(t.Elem())
-		ot = dcommontype(lsym, ot, t)
+		ot = dcommontype(lsym, t)
 		ot = dsymptr(lsym, ot, s1, 0)
 		ot = dextratype(lsym, ot, t, 0)
 
 	case TCHAN:
 		// ../../../../runtime/type.go:/chanType
 		s1 := dtypesym(t.Elem())
-		ot = dcommontype(lsym, ot, t)
+		ot = dcommontype(lsym, t)
 		ot = dsymptr(lsym, ot, s1, 0)
 		ot = duintptr(lsym, ot, uint64(t.ChanDir()))
 		ot = dextratype(lsym, ot, t, 0)
@@ -1227,7 +1217,7 @@ func dtypesym(t *types.Type) *obj.LSym {
 			dtypesym(t1.Type)
 		}
 
-		ot = dcommontype(lsym, ot, t)
+		ot = dcommontype(lsym, t)
 		inCount := t.NumRecvs() + t.NumParams()
 		outCount := t.NumResults()
 		if isddd {
@@ -1261,7 +1251,7 @@ func dtypesym(t *types.Type) *obj.LSym {
 		}
 
 		// ../../../../runtime/type.go:/interfaceType
-		ot = dcommontype(lsym, ot, t)
+		ot = dcommontype(lsym, t)
 
 		var tpkg *types.Pkg
 		if t.Sym != nil && t != types.Types[t.Etype] && t != types.Errortype {
@@ -1284,8 +1274,8 @@ func dtypesym(t *types.Type) *obj.LSym {
 			}
 			nsym := dname(a.name, "", pkg, exported)
 
-			ot = dsymptrOff(lsym, ot, nsym, 0)
-			ot = dsymptrOff(lsym, ot, dtypesym(a.type_), 0)
+			ot = dsymptrOff(lsym, ot, nsym)
+			ot = dsymptrOff(lsym, ot, dtypesym(a.type_))
 		}
 
 	// ../../../../runtime/type.go:/mapType
@@ -1294,7 +1284,7 @@ func dtypesym(t *types.Type) *obj.LSym {
 		s2 := dtypesym(t.Val())
 		s3 := dtypesym(bmap(t))
 		s4 := dtypesym(hmap(t))
-		ot = dcommontype(lsym, ot, t)
+		ot = dcommontype(lsym, t)
 		ot = dsymptr(lsym, ot, s1, 0)
 		ot = dsymptr(lsym, ot, s2, 0)
 		ot = dsymptr(lsym, ot, s3, 0)
@@ -1323,7 +1313,7 @@ func dtypesym(t *types.Type) *obj.LSym {
 	case TPTR32, TPTR64:
 		if t.Elem().Etype == TANY {
 			// ../../../../runtime/type.go:/UnsafePointerType
-			ot = dcommontype(lsym, ot, t)
+			ot = dcommontype(lsym, t)
 			ot = dextratype(lsym, ot, t, 0)
 
 			break
@@ -1332,7 +1322,7 @@ func dtypesym(t *types.Type) *obj.LSym {
 		// ../../../../runtime/type.go:/ptrType
 		s1 := dtypesym(t.Elem())
 
-		ot = dcommontype(lsym, ot, t)
+		ot = dcommontype(lsym, t)
 		ot = dsymptr(lsym, ot, s1, 0)
 		ot = dextratype(lsym, ot, t, 0)
 
@@ -1357,7 +1347,7 @@ func dtypesym(t *types.Type) *obj.LSym {
 			}
 		}
 
-		ot = dcommontype(lsym, ot, t)
+		ot = dcommontype(lsym, t)
 		ot = dgopkgpath(lsym, ot, spkg)
 		ot = dsymptr(lsym, ot, lsym, ot+3*Widthptr+uncommonSize(t))
 		ot = duintptr(lsym, ot, uint64(len(fields)))
@@ -1481,6 +1471,7 @@ func itabsym(it *obj.LSym, offset int64) *obj.LSym {
 	return syms[methodnum]
 }
 
+// addsignat ensures that a runtime type descriptor is emitted for t.
 func addsignat(t *types.Type) {
 	signatset[t] = struct{}{}
 }
@@ -1553,8 +1544,8 @@ func dumptabs() {
 			//	typ  typeOff // pointer to symbol
 			// }
 			nsym := dname(p.s.Name, "", nil, true)
-			ot = dsymptrOff(s, ot, nsym, 0)
-			ot = dsymptrOff(s, ot, dtypesym(p.t), 0)
+			ot = dsymptrOff(s, ot, nsym)
+			ot = dsymptrOff(s, ot, dtypesym(p.t))
 		}
 		ggloblsym(s, int32(ot), int16(obj.RODATA))
 
@@ -1858,7 +1849,7 @@ func (p *GCProg) emit(t *types.Type, offset int64) {
 		p.w.Ptr(offset / int64(Widthptr))
 
 	case TINTER:
-		p.w.Ptr(offset / int64(Widthptr))
+		// Note: the first word isn't a pointer. See comment in plive.go:onebitwalktype1.
 		p.w.Ptr(offset/int64(Widthptr) + 1)
 
 	case TSLICE:

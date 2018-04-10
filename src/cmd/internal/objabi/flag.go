@@ -7,6 +7,7 @@ package objabi
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -20,10 +21,8 @@ func Flagfn1(name, usage string, f func(string)) {
 	flag.Var(fn1(f), name, usage)
 }
 
-func Flagprint(fd int) {
-	if fd == 1 {
-		flag.CommandLine.SetOutput(os.Stdout)
-	}
+func Flagprint(w io.Writer) {
+	flag.CommandLine.SetOutput(w)
 	flag.PrintDefaults()
 }
 
@@ -104,21 +103,6 @@ func (c *count) IsBoolFlag() bool {
 }
 
 func (c *count) IsCountFlag() bool {
-	return true
-}
-
-type fn0 func()
-
-func (f fn0) Set(s string) error {
-	f()
-	return nil
-}
-
-func (f fn0) Get() interface{} { return nil }
-
-func (f fn0) String() string { return "" }
-
-func (f fn0) IsBoolFlag() bool {
 	return true
 }
 

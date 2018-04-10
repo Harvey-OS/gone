@@ -538,7 +538,7 @@ func (f *peFile) emitRelocations(ctxt *Link) {
 				if r.Xsym.Dynid < 0 {
 					Errorf(sym, "reloc %d to non-coff symbol %s (outer=%s) %d", r.Type, r.Sym.Name, r.Xsym.Name, r.Sym.Type)
 				}
-				if !Thearch.PEreloc1(ctxt.Arch, ctxt.Out, sym, r, int64(uint64(sym.Value+int64(r.Off))-base)) {
+				if !thearch.PEreloc1(ctxt.Arch, ctxt.Out, sym, r, int64(uint64(sym.Value+int64(r.Off))-base)) {
 					Errorf(sym, "unsupported obj reloc %d/%d to %s", r.Type, r.Siz, r.Sym.Name)
 				}
 				relocs++
@@ -857,14 +857,10 @@ func (f *peFile) writeOptionalHeader(ctxt *Link) {
 		oh64.SizeOfStackCommit = 0x00200000 - 0x2000 // account for 2 guard pages
 	}
 
-	// 32-bit is trickier since there much less address space to
-	// work with. Here we use large stacks only in cgo binaries as
-	// a compromise.
+	oh.SizeOfStackReserve = 0x00100000
 	if !iscgo {
-		oh.SizeOfStackReserve = 0x00020000
 		oh.SizeOfStackCommit = 0x00001000
 	} else {
-		oh.SizeOfStackReserve = 0x00100000
 		oh.SizeOfStackCommit = 0x00100000 - 0x2000 // account for 2 guard pages
 	}
 

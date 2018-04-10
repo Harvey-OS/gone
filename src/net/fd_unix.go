@@ -121,7 +121,7 @@ func (fd *netFD) connect(ctx context.Context, la, ra syscall.Sockaddr) (rsa sysc
 				// == nil). Because we've now poisoned the connection
 				// by making it unwritable, don't return a successful
 				// dial. This was issue 16523.
-				ret = ctxErr
+				ret = mapErr(ctxErr)
 				fd.Close() // prevent a leak
 			}
 		}()
@@ -173,7 +173,7 @@ func (fd *netFD) connect(ctx context.Context, la, ra syscall.Sockaddr) (rsa sysc
 				return rsa, nil
 			}
 		default:
-			return nil, os.NewSyscallError("getsockopt", err)
+			return nil, os.NewSyscallError("connect", err)
 		}
 		runtime.KeepAlive(fd)
 	}

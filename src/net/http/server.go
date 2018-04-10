@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style
 // license that can be found in the LICENSE file.
 
-// HTTP server. See RFC 2616.
+// HTTP server. See RFC 7230 through 7235.
 
 package http
 
@@ -227,8 +227,8 @@ var (
 	ServerContextKey = &contextKey{"http-server"}
 
 	// LocalAddrContextKey is a context key. It can be used in
-	// HTTP handlers with context.WithValue to access the address
-	// the local address the connection arrived on.
+	// HTTP handlers with context.WithValue to access the local
+	// address the connection arrived on.
 	// The associated value will be of type net.Addr.
 	LocalAddrContextKey = &contextKey{"local-addr"}
 )
@@ -513,6 +513,7 @@ func (w *response) declareTrailer(k string) {
 	switch k {
 	case "Transfer-Encoding", "Content-Length", "Trailer":
 		// Forbidden by RFC 2616 14.40.
+		// TODO: inconsistent with RFC 7230, section 4.1.2
 		return
 	}
 	w.trailers = append(w.trailers, k)
@@ -937,7 +938,7 @@ func (c *conn) readRequest(ctx context.Context) (w *response, err error) {
 
 	c.r.setReadLimit(c.server.initialReadLimitSize())
 	if c.lastMethod == "POST" {
-		// RFC 2616 section 4.1 tolerance for old buggy clients.
+		// RFC 7230 section 3 tolerance for old buggy clients.
 		peek, _ := c.bufr.Peek(4) // ReadRequest will get err below
 		c.bufr.Discard(numLeadingCRorLF(peek))
 	}
@@ -1072,7 +1073,6 @@ func checkWriteHeaderCode(code int) {
 }
 
 func (w *response) WriteHeader(code int) {
-	checkWriteHeaderCode(code)
 	if w.conn.hijacked() {
 		w.conn.server.logf("http: response.WriteHeader on hijacked connection")
 		return
@@ -1081,6 +1081,7 @@ func (w *response) WriteHeader(code int) {
 		w.conn.server.logf("http: multiple response.WriteHeader calls")
 		return
 	}
+	checkWriteHeaderCode(code)
 	w.wroteHeader = true
 	w.status = code
 
@@ -1414,7 +1415,7 @@ func (cw *chunkWriter) writeHeader(p []byte) {
 }
 
 // foreachHeaderElement splits v according to the "#rule" construction
-// in RFC 2616 section 2.1 and calls fn for each non-empty element.
+// in RFC 7230 section 7 and calls fn for each non-empty element.
 func foreachHeaderElement(v string, fn func(string)) {
 	v = textproto.TrimString(v)
 	if v == "" {
@@ -1431,7 +1432,7 @@ func foreachHeaderElement(v string, fn func(string)) {
 	}
 }
 
-// writeStatusLine writes an HTTP/1.x Status-Line (RFC 2616 Section 6.1)
+// writeStatusLine writes an HTTP/1.x Status-Line (RFC 7230 Section 3.1.2)
 // to bw. is11 is whether the HTTP request is HTTP/1.1. false means HTTP/1.0.
 // code is the response status code.
 // scratch is an optional scratch buffer. If it has at least capacity 3, it's used.
@@ -1868,11 +1869,11 @@ func (w *response) sendExpectationFailed() {
 	// make the ResponseWriter an optional
 	// "ExpectReplier" interface or something.
 	//
-	// For now we'll just obey RFC 2616 14.20 which says
-	// "If a server receives a request containing an
-	// Expect field that includes an expectation-
-	// extension that it does not support, it MUST
-	// respond with a 417 (Expectation Failed) status."
+	// For now we'll just obey RFC 7231 5.1.1 which says
+	// "A server that receives an Expect field-value other
+	// than 100-continue MAY respond with a 417 (Expectation
+	// Failed) status code to indicate that the unexpected
+	// expectation cannot be met."
 	w.Header().Set("Connection", "close")
 	w.WriteHeader(StatusExpectationFailed)
 	w.finishRequest()
@@ -1998,22 +1999,11 @@ func StripPrefix(prefix string, h Handler) Handler {
 func Redirect(w ResponseWriter, r *Request, url string, code int) {
 	// parseURL is just url.Parse (url is shadowed for godoc).
 	if u, err := parseURL(url); err == nil {
-		// If url was relative, make absolute by
+		// If url was relative, make its path absolute by
 		// combining with request path.
-		// The browser would probably do this for us,
+		// The client would probably do this for us,
 		// but doing it ourselves is more reliable.
-
-		// NOTE(rsc): RFC 2616 says that the Location
-		// line must be an absolute URI, like
-		// "http://www.google.com/redirect/",
-		// not a path like "/redirect/".
-		// Unfortunately, we don't know what to
-		// put in the host name section to get the
-		// client to connect to us again, so we can't
-		// know the right absolute URI to send back.
-		// Because of this problem, no one pays attention
-		// to the RFC; they all send back just a new path.
-		// So do we.
+		// See RFC 7231, section 7.1.2
 		if u.Scheme == "" && u.Host == "" {
 			oldpath := r.URL.Path
 			if oldpath == "" { // should not happen, but avoid a crash if it does
@@ -2048,8 +2038,8 @@ func Redirect(w ResponseWriter, r *Request, url string, code int) {
 	}
 	w.WriteHeader(code)
 
-	// RFC 2616 recommends that a short note "SHOULD" be included in the
-	// response because older user agents may not understand 301/307.
+	// RFC 7231 notes that a short hypertext note is usually included in
+	// the response because older user agents may not understand 301/307.
 	// Shouldn't send the response for POST or HEAD; that leaves GET.
 	if r.Method == "GET" {
 		note := "<a href=\"" + htmlEscape(url) + "\">" + statusText[code] + "</a>.\n"
@@ -2162,7 +2152,7 @@ func pathMatch(pattern, path string) bool {
 	return len(path) >= n && path[0:n] == pattern
 }
 
-// Return the canonical path for p, eliminating . and .. elements.
+// cleanPath returns the canonical path for p, eliminating . and .. elements.
 func cleanPath(p string) string {
 	if p == "" {
 		return "/"
@@ -2220,8 +2210,8 @@ func (mux *ServeMux) match(path string) (h Handler, pattern string) {
 // This occurs when a handler for path + "/" was already registered, but
 // not for path itself. If the path needs appending to, it creates a new
 // URL, setting the path to u.Path + "/" and returning true to indicate so.
-func (mux *ServeMux) redirectToPathSlash(path string, u *url.URL) (*url.URL, bool) {
-	if !mux.shouldRedirect(path) {
+func (mux *ServeMux) redirectToPathSlash(host, path string, u *url.URL) (*url.URL, bool) {
+	if !mux.shouldRedirect(host, path) {
 		return u, false
 	}
 	path = path + "/"
@@ -2229,16 +2219,32 @@ func (mux *ServeMux) redirectToPathSlash(path string, u *url.URL) (*url.URL, boo
 	return u, true
 }
 
-// shouldRedirect reports whether the given path should be redirected to
+// shouldRedirect reports whether the given path and host should be redirected to
 // path+"/". This should happen if a handler is registered for path+"/" but
 // not path -- see comments at ServeMux.
-func (mux *ServeMux) shouldRedirect(path string) bool {
-	if _, exist := mux.m[path]; exist {
+func (mux *ServeMux) shouldRedirect(host, path string) bool {
+	mux.mu.RLock()
+	defer mux.mu.RUnlock()
+
+	p := []string{path, host + path}
+
+	for _, c := range p {
+		if _, exist := mux.m[c]; exist {
+			return false
+		}
+	}
+
+	n := len(path)
+	if n == 0 {
 		return false
 	}
-	n := len(path)
-	_, exist := mux.m[path+"/"]
-	return n > 0 && path[n-1] != '/' && exist
+	for _, c := range p {
+		if _, exist := mux.m[c+"/"]; exist {
+			return path[n-1] != '/'
+		}
+	}
+
+	return false
 }
 
 // Handler returns the handler to use for the given request,
@@ -2263,7 +2269,7 @@ func (mux *ServeMux) Handler(r *Request) (h Handler, pattern string) {
 		// If r.URL.Path is /tree and its handler is not registered,
 		// the /tree -> /tree/ redirect applies to CONNECT requests
 		// but the path canonicalization does not.
-		if u, ok := mux.redirectToPathSlash(r.URL.Path, r.URL); ok {
+		if u, ok := mux.redirectToPathSlash(r.URL.Host, r.URL.Path, r.URL); ok {
 			return RedirectHandler(u.String(), StatusMovedPermanently), u.Path
 		}
 
@@ -2277,7 +2283,7 @@ func (mux *ServeMux) Handler(r *Request) (h Handler, pattern string) {
 
 	// If the given path is /tree and its handler is not registered,
 	// redirect for /tree/.
-	if u, ok := mux.redirectToPathSlash(path, r.URL); ok {
+	if u, ok := mux.redirectToPathSlash(host, path, r.URL); ok {
 		return RedirectHandler(u.String(), StatusMovedPermanently), u.Path
 	}
 
@@ -2352,6 +2358,9 @@ func (mux *ServeMux) Handle(pattern string, handler Handler) {
 
 // HandleFunc registers the handler function for the given pattern.
 func (mux *ServeMux) HandleFunc(pattern string, handler func(ResponseWriter, *Request)) {
+	if handler == nil {
+		panic("http: nil handler")
+	}
 	mux.Handle(pattern, HandlerFunc(handler))
 }
 
@@ -2394,9 +2403,17 @@ func ServeTLS(l net.Listener, handler Handler, certFile, keyFile string) error {
 // A Server defines parameters for running an HTTP server.
 // The zero value for Server is a valid configuration.
 type Server struct {
-	Addr      string      // TCP address to listen on, ":http" if empty
-	Handler   Handler     // handler to invoke, http.DefaultServeMux if nil
-	TLSConfig *tls.Config // optional TLS config, used by ServeTLS and ListenAndServeTLS
+	Addr    string  // TCP address to listen on, ":http" if empty
+	Handler Handler // handler to invoke, http.DefaultServeMux if nil
+
+	// TLSConfig optionally provides a TLS configuration for use
+	// by ServeTLS and ListenAndServeTLS. Note that this value is
+	// cloned by ServeTLS and ListenAndServeTLS, so it's not
+	// possible to modify the configuration with methods like
+	// tls.Config.SetSessionTicketKeys. To use
+	// SetSessionTicketKeys, use Server.Serve with a TLS Listener
+	// instead.
+	TLSConfig *tls.Config
 
 	// ReadTimeout is the maximum duration for reading the entire
 	// request, including the body.

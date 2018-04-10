@@ -255,6 +255,12 @@ const (
 	Op386MOVSSstoreidx4
 	Op386MOVSDstoreidx1
 	Op386MOVSDstoreidx8
+	Op386ADDSSmem
+	Op386ADDSDmem
+	Op386SUBSSmem
+	Op386SUBSDmem
+	Op386MULSSmem
+	Op386MULSDmem
 	Op386ADDL
 	Op386ADDLconst
 	Op386ADDLcarry
@@ -318,6 +324,11 @@ const (
 	Op386ROLLconst
 	Op386ROLWconst
 	Op386ROLBconst
+	Op386ADDLmem
+	Op386SUBLmem
+	Op386ANDLmem
+	Op386ORLmem
+	Op386XORLmem
 	Op386NEGL
 	Op386NOTL
 	Op386BSFL
@@ -399,6 +410,7 @@ const (
 	Op386LoweredGetCallerPC
 	Op386LoweredGetCallerSP
 	Op386LoweredNilCheck
+	Op386LoweredWB
 	Op386MOVLconvert
 	Op386FlagEQ
 	Op386FlagLT_ULT
@@ -486,12 +498,32 @@ const (
 	OpAMD64CMPLconst
 	OpAMD64CMPWconst
 	OpAMD64CMPBconst
+	OpAMD64CMPQmem
+	OpAMD64CMPLmem
+	OpAMD64CMPWmem
+	OpAMD64CMPBmem
+	OpAMD64CMPQconstmem
+	OpAMD64CMPLconstmem
+	OpAMD64CMPWconstmem
+	OpAMD64CMPBconstmem
 	OpAMD64UCOMISS
 	OpAMD64UCOMISD
 	OpAMD64BTL
 	OpAMD64BTQ
+	OpAMD64BTCL
+	OpAMD64BTCQ
+	OpAMD64BTRL
+	OpAMD64BTRQ
+	OpAMD64BTSL
+	OpAMD64BTSQ
 	OpAMD64BTLconst
 	OpAMD64BTQconst
+	OpAMD64BTCLconst
+	OpAMD64BTCQconst
+	OpAMD64BTRLconst
+	OpAMD64BTRQconst
+	OpAMD64BTSLconst
+	OpAMD64BTSQconst
 	OpAMD64TESTQ
 	OpAMD64TESTL
 	OpAMD64TESTW
@@ -551,7 +583,47 @@ const (
 	OpAMD64BSRQ
 	OpAMD64BSRL
 	OpAMD64CMOVQEQ
+	OpAMD64CMOVQNE
+	OpAMD64CMOVQLT
+	OpAMD64CMOVQGT
+	OpAMD64CMOVQLE
+	OpAMD64CMOVQGE
+	OpAMD64CMOVQLS
+	OpAMD64CMOVQHI
+	OpAMD64CMOVQCC
+	OpAMD64CMOVQCS
 	OpAMD64CMOVLEQ
+	OpAMD64CMOVLNE
+	OpAMD64CMOVLLT
+	OpAMD64CMOVLGT
+	OpAMD64CMOVLLE
+	OpAMD64CMOVLGE
+	OpAMD64CMOVLLS
+	OpAMD64CMOVLHI
+	OpAMD64CMOVLCC
+	OpAMD64CMOVLCS
+	OpAMD64CMOVWEQ
+	OpAMD64CMOVWNE
+	OpAMD64CMOVWLT
+	OpAMD64CMOVWGT
+	OpAMD64CMOVWLE
+	OpAMD64CMOVWGE
+	OpAMD64CMOVWLS
+	OpAMD64CMOVWHI
+	OpAMD64CMOVWCC
+	OpAMD64CMOVWCS
+	OpAMD64CMOVQEQF
+	OpAMD64CMOVQNEF
+	OpAMD64CMOVQGTF
+	OpAMD64CMOVQGEF
+	OpAMD64CMOVLEQF
+	OpAMD64CMOVLNEF
+	OpAMD64CMOVLGTF
+	OpAMD64CMOVLGEF
+	OpAMD64CMOVWEQF
+	OpAMD64CMOVWNEF
+	OpAMD64CMOVWGTF
+	OpAMD64CMOVWGEF
 	OpAMD64BSWAPQ
 	OpAMD64BSWAPL
 	OpAMD64POPCNTQ
@@ -948,6 +1020,7 @@ const (
 	OpARMFlagGT_UGT
 	OpARMFlagGT_ULT
 	OpARMInvertFlags
+	OpARMLoweredWB
 
 	OpARM64ADD
 	OpARM64ADDconst
@@ -955,6 +1028,8 @@ const (
 	OpARM64SUBconst
 	OpARM64MUL
 	OpARM64MULW
+	OpARM64MNEG
+	OpARM64MNEGW
 	OpARM64MULH
 	OpARM64UMULH
 	OpARM64MULL
@@ -973,6 +1048,8 @@ const (
 	OpARM64FSUBD
 	OpARM64FMULS
 	OpARM64FMULD
+	OpARM64FNMULS
+	OpARM64FNMULD
 	OpARM64FDIVS
 	OpARM64FDIVD
 	OpARM64AND
@@ -982,7 +1059,9 @@ const (
 	OpARM64XOR
 	OpARM64XORconst
 	OpARM64BIC
-	OpARM64BICconst
+	OpARM64EON
+	OpARM64ORN
+	OpARM64LoweredMuluhilo
 	OpARM64MVN
 	OpARM64NEG
 	OpARM64FNEGS
@@ -995,6 +1074,18 @@ const (
 	OpARM64RBITW
 	OpARM64CLZ
 	OpARM64CLZW
+	OpARM64VCNT
+	OpARM64VUADDLV
+	OpARM64LoweredRound32F
+	OpARM64LoweredRound64F
+	OpARM64FMADDS
+	OpARM64FMADDD
+	OpARM64FNMADDS
+	OpARM64FNMADDD
+	OpARM64FMSUBS
+	OpARM64FMSUBD
+	OpARM64FNMSUBS
+	OpARM64FNMSUBD
 	OpARM64SLL
 	OpARM64SLLconst
 	OpARM64SRL
@@ -1003,6 +1094,8 @@ const (
 	OpARM64SRAconst
 	OpARM64RORconst
 	OpARM64RORWconst
+	OpARM64EXTRconst
+	OpARM64EXTRWconst
 	OpARM64CMP
 	OpARM64CMPconst
 	OpARM64CMPW
@@ -1031,9 +1124,21 @@ const (
 	OpARM64BICshiftLL
 	OpARM64BICshiftRL
 	OpARM64BICshiftRA
+	OpARM64EONshiftLL
+	OpARM64EONshiftRL
+	OpARM64EONshiftRA
+	OpARM64ORNshiftLL
+	OpARM64ORNshiftRL
+	OpARM64ORNshiftRA
 	OpARM64CMPshiftLL
 	OpARM64CMPshiftRL
 	OpARM64CMPshiftRA
+	OpARM64BFI
+	OpARM64BFXIL
+	OpARM64SBFIZ
+	OpARM64SBFX
+	OpARM64UBFIZ
+	OpARM64UBFX
 	OpARM64MOVDconst
 	OpARM64FMOVSconst
 	OpARM64FMOVDconst
@@ -1059,6 +1164,8 @@ const (
 	OpARM64MOVWstorezero
 	OpARM64MOVDstorezero
 	OpARM64MOVQstorezero
+	OpARM64FMOVDgpfp
+	OpARM64FMOVDfpgp
 	OpARM64MOVBreg
 	OpARM64MOVBUreg
 	OpARM64MOVHreg
@@ -1085,8 +1192,12 @@ const (
 	OpARM64FCVTZUD
 	OpARM64FCVTSD
 	OpARM64FCVTDS
-	OpARM64CSELULT
-	OpARM64CSELULT0
+	OpARM64FRINTAD
+	OpARM64FRINTMD
+	OpARM64FRINTPD
+	OpARM64FRINTZD
+	OpARM64CSEL
+	OpARM64CSEL0
 	OpARM64CALLstatic
 	OpARM64CALLclosure
 	OpARM64CALLinter
@@ -1126,6 +1237,7 @@ const (
 	OpARM64LoweredAtomicCas32
 	OpARM64LoweredAtomicAnd8
 	OpARM64LoweredAtomicOr8
+	OpARM64LoweredWB
 
 	OpMIPSADD
 	OpMIPSADDconst
@@ -1227,6 +1339,7 @@ const (
 	OpMIPSFPFlagFalse
 	OpMIPSLoweredGetClosurePtr
 	OpMIPSLoweredGetCallerSP
+	OpMIPSLoweredWB
 	OpMIPSMOVWconvert
 
 	OpMIPS64ADDV
@@ -1256,6 +1369,7 @@ const (
 	OpMIPS64NEGV
 	OpMIPS64NEGF
 	OpMIPS64NEGD
+	OpMIPS64SQRTD
 	OpMIPS64SLLV
 	OpMIPS64SLLVconst
 	OpMIPS64SRLV
@@ -1338,6 +1452,7 @@ const (
 	OpMIPS64FPFlagFalse
 	OpMIPS64LoweredGetClosurePtr
 	OpMIPS64LoweredGetCallerSP
+	OpMIPS64LoweredWB
 	OpMIPS64MOVVconvert
 
 	OpPPC64ADD
@@ -1487,6 +1602,7 @@ const (
 	OpPPC64LoweredAtomicCas32
 	OpPPC64LoweredAtomicAnd8
 	OpPPC64LoweredAtomicOr8
+	OpPPC64LoweredWB
 	OpPPC64InvertFlags
 	OpPPC64FlagEQ
 	OpPPC64FlagLT
@@ -1680,6 +1796,7 @@ const (
 	OpS390XLoweredNilCheck
 	OpS390XLoweredRound32F
 	OpS390XLoweredRound64F
+	OpS390XLoweredWB
 	OpS390XMOVDconvert
 	OpS390XFlagEQ
 	OpS390XFlagLT
@@ -1871,6 +1988,7 @@ const (
 	OpGeq64U
 	OpGeq32F
 	OpGeq64F
+	OpCondSelect
 	OpAndB
 	OpOrB
 	OpEqB
@@ -2008,7 +2126,6 @@ const (
 	OpVarKill
 	OpVarLive
 	OpKeepAlive
-	OpRegKill
 	OpInt64Make
 	OpInt64Hi
 	OpInt64Lo
@@ -2382,6 +2499,114 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
+		name:           "ADDSSmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		resultInArg0:   true,
+		faultOnNilArg1: true,
+		symEffect:      SymRead,
+		asm:            x86.AADDSS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+				{1, 65791}, // AX CX DX BX SP BP SI DI SB
+			},
+			outputs: []outputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+			},
+		},
+	},
+	{
+		name:           "ADDSDmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		resultInArg0:   true,
+		faultOnNilArg1: true,
+		symEffect:      SymRead,
+		asm:            x86.AADDSD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+				{1, 65791}, // AX CX DX BX SP BP SI DI SB
+			},
+			outputs: []outputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+			},
+		},
+	},
+	{
+		name:           "SUBSSmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		resultInArg0:   true,
+		faultOnNilArg1: true,
+		symEffect:      SymRead,
+		asm:            x86.ASUBSS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+				{1, 65791}, // AX CX DX BX SP BP SI DI SB
+			},
+			outputs: []outputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+			},
+		},
+	},
+	{
+		name:           "SUBSDmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		resultInArg0:   true,
+		faultOnNilArg1: true,
+		symEffect:      SymRead,
+		asm:            x86.ASUBSD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+				{1, 65791}, // AX CX DX BX SP BP SI DI SB
+			},
+			outputs: []outputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+			},
+		},
+	},
+	{
+		name:           "MULSSmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		resultInArg0:   true,
+		faultOnNilArg1: true,
+		symEffect:      SymRead,
+		asm:            x86.AMULSS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+				{1, 65791}, // AX CX DX BX SP BP SI DI SB
+			},
+			outputs: []outputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+			},
+		},
+	},
+	{
+		name:           "MULSDmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		resultInArg0:   true,
+		faultOnNilArg1: true,
+		symEffect:      SymRead,
+		asm:            x86.AMULSD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+				{1, 65791}, // AX CX DX BX SP BP SI DI SB
+			},
+			outputs: []outputInfo{
+				{0, 65280}, // X0 X1 X2 X3 X4 X5 X6 X7
+			},
+		},
+	},
+	{
 		name:         "ADDL",
 		argLen:       2,
 		commutative:  true,
@@ -2595,9 +2820,8 @@ var opcodeTable = [...]opInfo{
 		name:         "MULLconst",
 		auxType:      auxInt32,
 		argLen:       1,
-		resultInArg0: true,
 		clobberFlags: true,
-		asm:          x86.AIMULL,
+		asm:          x86.AIMUL3L,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 239}, // AX CX DX BX BP SI DI
@@ -3326,6 +3550,101 @@ var opcodeTable = [...]opInfo{
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 239}, // AX CX DX BX BP SI DI
+			},
+			outputs: []outputInfo{
+				{0, 239}, // AX CX DX BX BP SI DI
+			},
+		},
+	},
+	{
+		name:           "ADDLmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		resultInArg0:   true,
+		clobberFlags:   true,
+		faultOnNilArg1: true,
+		symEffect:      SymRead,
+		asm:            x86.AADDL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 239},   // AX CX DX BX BP SI DI
+				{1, 65791}, // AX CX DX BX SP BP SI DI SB
+			},
+			outputs: []outputInfo{
+				{0, 239}, // AX CX DX BX BP SI DI
+			},
+		},
+	},
+	{
+		name:           "SUBLmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		resultInArg0:   true,
+		clobberFlags:   true,
+		faultOnNilArg1: true,
+		symEffect:      SymRead,
+		asm:            x86.ASUBL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 239},   // AX CX DX BX BP SI DI
+				{1, 65791}, // AX CX DX BX SP BP SI DI SB
+			},
+			outputs: []outputInfo{
+				{0, 239}, // AX CX DX BX BP SI DI
+			},
+		},
+	},
+	{
+		name:           "ANDLmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		resultInArg0:   true,
+		clobberFlags:   true,
+		faultOnNilArg1: true,
+		symEffect:      SymRead,
+		asm:            x86.AANDL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 239},   // AX CX DX BX BP SI DI
+				{1, 65791}, // AX CX DX BX SP BP SI DI SB
+			},
+			outputs: []outputInfo{
+				{0, 239}, // AX CX DX BX BP SI DI
+			},
+		},
+	},
+	{
+		name:           "ORLmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		resultInArg0:   true,
+		clobberFlags:   true,
+		faultOnNilArg1: true,
+		symEffect:      SymRead,
+		asm:            x86.AORL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 239},   // AX CX DX BX BP SI DI
+				{1, 65791}, // AX CX DX BX SP BP SI DI SB
+			},
+			outputs: []outputInfo{
+				{0, 239}, // AX CX DX BX BP SI DI
+			},
+		},
+	},
+	{
+		name:           "XORLmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		resultInArg0:   true,
+		clobberFlags:   true,
+		faultOnNilArg1: true,
+		symEffect:      SymRead,
+		asm:            x86.AXORL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 239},   // AX CX DX BX BP SI DI
+				{1, 65791}, // AX CX DX BX SP BP SI DI SB
 			},
 			outputs: []outputInfo{
 				{0, 239}, // AX CX DX BX BP SI DI
@@ -4349,8 +4668,9 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
-		name:   "LoweredGetClosurePtr",
-		argLen: 0,
+		name:      "LoweredGetClosurePtr",
+		argLen:    0,
+		zeroWidth: true,
 		reg: regInfo{
 			outputs: []outputInfo{
 				{0, 4}, // DX
@@ -4390,9 +4710,24 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
+		name:         "LoweredWB",
+		auxType:      auxSym,
+		argLen:       3,
+		clobberFlags: true,
+		symEffect:    SymNone,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 128}, // DI
+				{1, 1},   // AX
+			},
+			clobbers: 65280, // X0 X1 X2 X3 X4 X5 X6 X7
+		},
+	},
+	{
 		name:         "MOVLconvert",
 		argLen:       2,
 		resultInArg0: true,
+		zeroWidth:    true,
 		asm:          x86.AMOVL,
 		reg: regInfo{
 			inputs: []inputInfo{
@@ -5115,9 +5450,8 @@ var opcodeTable = [...]opInfo{
 		name:         "MULQconst",
 		auxType:      auxInt32,
 		argLen:       1,
-		resultInArg0: true,
 		clobberFlags: true,
-		asm:          x86.AIMULQ,
+		asm:          x86.AIMUL3Q,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
@@ -5131,9 +5465,8 @@ var opcodeTable = [...]opInfo{
 		name:         "MULLconst",
 		auxType:      auxInt32,
 		argLen:       1,
-		resultInArg0: true,
 		clobberFlags: true,
-		asm:          x86.AIMULL,
+		asm:          x86.AIMUL3L,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
@@ -5644,6 +5977,114 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
+		name:           "CMPQmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		faultOnNilArg0: true,
+		symEffect:      SymRead,
+		asm:            x86.ACMPQ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{1, 65535},      // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{0, 4295032831}, // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15 SB
+			},
+		},
+	},
+	{
+		name:           "CMPLmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		faultOnNilArg0: true,
+		symEffect:      SymRead,
+		asm:            x86.ACMPL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{1, 65535},      // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{0, 4295032831}, // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15 SB
+			},
+		},
+	},
+	{
+		name:           "CMPWmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		faultOnNilArg0: true,
+		symEffect:      SymRead,
+		asm:            x86.ACMPW,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{1, 65535},      // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{0, 4295032831}, // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15 SB
+			},
+		},
+	},
+	{
+		name:           "CMPBmem",
+		auxType:        auxSymOff,
+		argLen:         3,
+		faultOnNilArg0: true,
+		symEffect:      SymRead,
+		asm:            x86.ACMPB,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{1, 65535},      // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{0, 4295032831}, // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15 SB
+			},
+		},
+	},
+	{
+		name:           "CMPQconstmem",
+		auxType:        auxSymValAndOff,
+		argLen:         2,
+		faultOnNilArg0: true,
+		symEffect:      SymRead,
+		asm:            x86.ACMPQ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 4295032831}, // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15 SB
+			},
+		},
+	},
+	{
+		name:           "CMPLconstmem",
+		auxType:        auxSymValAndOff,
+		argLen:         2,
+		faultOnNilArg0: true,
+		symEffect:      SymRead,
+		asm:            x86.ACMPL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 4295032831}, // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15 SB
+			},
+		},
+	},
+	{
+		name:           "CMPWconstmem",
+		auxType:        auxSymValAndOff,
+		argLen:         2,
+		faultOnNilArg0: true,
+		symEffect:      SymRead,
+		asm:            x86.ACMPW,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 4295032831}, // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15 SB
+			},
+		},
+	},
+	{
+		name:           "CMPBconstmem",
+		auxType:        auxSymValAndOff,
+		argLen:         2,
+		faultOnNilArg0: true,
+		symEffect:      SymRead,
+		asm:            x86.ACMPB,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 4295032831}, // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15 SB
+			},
+		},
+	},
+	{
 		name:   "UCOMISS",
 		argLen: 2,
 		asm:    x86.AUCOMISS,
@@ -5688,6 +6129,102 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
+		name:         "BTCL",
+		argLen:       2,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTCL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "BTCQ",
+		argLen:       2,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTCQ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "BTRL",
+		argLen:       2,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTRL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "BTRQ",
+		argLen:       2,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTRQ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "BTSL",
+		argLen:       2,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTSL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "BTSQ",
+		argLen:       2,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTSQ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
 		name:    "BTLconst",
 		auxType: auxInt8,
 		argLen:  1,
@@ -5706,6 +6243,102 @@ var opcodeTable = [...]opInfo{
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 65535}, // AX CX DX BX SP BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "BTCLconst",
+		auxType:      auxInt8,
+		argLen:       1,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTCL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "BTCQconst",
+		auxType:      auxInt8,
+		argLen:       1,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTCQ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "BTRLconst",
+		auxType:      auxInt8,
+		argLen:       1,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTRL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "BTRQconst",
+		auxType:      auxInt8,
+		argLen:       1,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTRQ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "BTSLconst",
+		auxType:      auxInt8,
+		argLen:       1,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTSL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "BTSQconst",
+		auxType:      auxInt8,
+		argLen:       1,
+		resultInArg0: true,
+		clobberFlags: true,
+		asm:          x86.ABTSQ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
 			},
 		},
 	},
@@ -6635,10 +7268,611 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
+		name:         "CMOVQNE",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQNE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQLT",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQLT,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQGT",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQGT,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQLE",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQLE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQGE",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQGE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQLS",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQLS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQHI",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQHI,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQCC",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQCC,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQCS",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQCS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
 		name:         "CMOVLEQ",
 		argLen:       3,
 		resultInArg0: true,
 		asm:          x86.ACMOVLEQ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLNE",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLNE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLLT",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLLT,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLGT",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLGT,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLLE",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLLE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLGE",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLGE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLLS",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLLS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLHI",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLHI,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLCC",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLCC,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLCS",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLCS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWEQ",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWEQ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWNE",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWNE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWLT",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWLT,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWGT",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWGT,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWLE",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWLE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWGE",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWGE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWLS",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWLS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWHI",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWHI,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWCC",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWCC,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWCS",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWCS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQEQF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQNE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65518}, // CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			clobbers: 1, // AX
+			outputs: []outputInfo{
+				{0, 65518}, // CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQNEF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQNE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQGTF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQHI,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVQGEF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVQCC,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLEQF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLNE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLNEF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLNE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLGTF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLHI,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVLGEF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVLCC,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWEQF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWNE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWNEF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWNE,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWGTF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWHI,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+				{1, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+			outputs: []outputInfo{
+				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
+			},
+		},
+	},
+	{
+		name:         "CMOVWGEF",
+		argLen:       3,
+		resultInArg0: true,
+		asm:          x86.ACMOVWCC,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 65519}, // AX CX DX BX BP SI DI R8 R9 R10 R11 R12 R13 R14 R15
@@ -8141,8 +9375,9 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
-		name:   "LoweredGetClosurePtr",
-		argLen: 0,
+		name:      "LoweredGetClosurePtr",
+		argLen:    0,
+		zeroWidth: true,
 		reg: regInfo{
 			outputs: []outputInfo{
 				{0, 4}, // DX
@@ -8199,6 +9434,7 @@ var opcodeTable = [...]opInfo{
 		name:         "MOVQconvert",
 		argLen:       2,
 		resultInArg0: true,
+		zeroWidth:    true,
 		asm:          x86.AMOVQ,
 		reg: regInfo{
 			inputs: []inputInfo{
@@ -8213,6 +9449,7 @@ var opcodeTable = [...]opInfo{
 		name:         "MOVLconvert",
 		argLen:       2,
 		resultInArg0: true,
+		zeroWidth:    true,
 		asm:          x86.AMOVL,
 		reg: regInfo{
 			inputs: []inputInfo{
@@ -11915,8 +13152,9 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
-		name:   "LoweredGetClosurePtr",
-		argLen: 0,
+		name:      "LoweredGetClosurePtr",
+		argLen:    0,
+		zeroWidth: true,
 		reg: regInfo{
 			outputs: []outputInfo{
 				{0, 128}, // R7
@@ -11975,6 +13213,20 @@ var opcodeTable = [...]opInfo{
 		name:   "InvertFlags",
 		argLen: 1,
 		reg:    regInfo{},
+	},
+	{
+		name:         "LoweredWB",
+		auxType:      auxSym,
+		argLen:       3,
+		clobberFlags: true,
+		symEffect:    SymNone,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 4}, // R2
+				{1, 8}, // R3
+			},
+			clobbers: 4294918144, // R14 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
+		},
 	},
 
 	{
@@ -12054,6 +13306,36 @@ var opcodeTable = [...]opInfo{
 		argLen:      2,
 		commutative: true,
 		asm:         arm64.AMULW,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:        "MNEG",
+		argLen:      2,
+		commutative: true,
+		asm:         arm64.AMNEG,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:        "MNEGW",
+		argLen:      2,
+		commutative: true,
+		asm:         arm64.AMNEGW,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
@@ -12325,6 +13607,36 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
+		name:        "FNMULS",
+		argLen:      2,
+		commutative: true,
+		asm:         arm64.AFNMULS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{1, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:        "FNMULD",
+		argLen:      2,
+		commutative: true,
+		asm:         arm64.AFNMULD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{1, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
 		name:   "FDIVS",
 		argLen: 2,
 		asm:    arm64.AFDIVS,
@@ -12454,16 +13766,45 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
-		name:    "BICconst",
-		auxType: auxInt64,
-		argLen:  1,
-		asm:     arm64.ABIC,
+		name:   "EON",
+		argLen: 2,
+		asm:    arm64.AEON,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
 			},
 			outputs: []outputInfo{
 				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:   "ORN",
+		argLen: 2,
+		asm:    arm64.AORN,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:            "LoweredMuluhilo",
+		argLen:          2,
+		resultNotInArgs: true,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+				{1, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
 			},
 		},
 	},
@@ -12624,6 +13965,180 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
+		name:   "VCNT",
+		argLen: 1,
+		asm:    arm64.AVCNT,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "VUADDLV",
+		argLen: 1,
+		asm:    arm64.AVUADDLV,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:         "LoweredRound32F",
+		argLen:       1,
+		resultInArg0: true,
+		zeroWidth:    true,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:         "LoweredRound64F",
+		argLen:       1,
+		resultInArg0: true,
+		zeroWidth:    true,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FMADDS",
+		argLen: 3,
+		asm:    arm64.AFMADDS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{1, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{2, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FMADDD",
+		argLen: 3,
+		asm:    arm64.AFMADDD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{1, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{2, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FNMADDS",
+		argLen: 3,
+		asm:    arm64.AFNMADDS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{1, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{2, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FNMADDD",
+		argLen: 3,
+		asm:    arm64.AFNMADDD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{1, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{2, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FMSUBS",
+		argLen: 3,
+		asm:    arm64.AFMSUBS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{1, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{2, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FMSUBD",
+		argLen: 3,
+		asm:    arm64.AFMSUBD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{1, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{2, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FNMSUBS",
+		argLen: 3,
+		asm:    arm64.AFNMSUBS,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{1, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{2, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FNMSUBD",
+		argLen: 3,
+		asm:    arm64.AFNMSUBD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{1, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+				{2, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
 		name:   "SLL",
 		argLen: 2,
 		asm:    arm64.ALSL,
@@ -12729,6 +14244,36 @@ var opcodeTable = [...]opInfo{
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:    "EXTRconst",
+		auxType: auxInt64,
+		argLen:  2,
+		asm:     arm64.AEXTR,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:    "EXTRWconst",
+		auxType: auxInt64,
+		argLen:  2,
+		asm:     arm64.AEXTRW,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
 			},
 			outputs: []outputInfo{
 				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
@@ -13116,6 +14661,96 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
+		name:    "EONshiftLL",
+		auxType: auxInt64,
+		argLen:  2,
+		asm:     arm64.AEON,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:    "EONshiftRL",
+		auxType: auxInt64,
+		argLen:  2,
+		asm:     arm64.AEON,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:    "EONshiftRA",
+		auxType: auxInt64,
+		argLen:  2,
+		asm:     arm64.AEON,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:    "ORNshiftLL",
+		auxType: auxInt64,
+		argLen:  2,
+		asm:     arm64.AORN,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:    "ORNshiftRL",
+		auxType: auxInt64,
+		argLen:  2,
+		asm:     arm64.AORN,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:    "ORNshiftRA",
+		auxType: auxInt64,
+		argLen:  2,
+		asm:     arm64.AORN,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
 		name:    "CMPshiftLL",
 		auxType: auxInt64,
 		argLen:  2,
@@ -13148,6 +14783,94 @@ var opcodeTable = [...]opInfo{
 			inputs: []inputInfo{
 				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
 				{1, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+		},
+	},
+	{
+		name:         "BFI",
+		auxType:      auxInt64,
+		argLen:       2,
+		resultInArg0: true,
+		asm:          arm64.ABFI,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+				{1, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:         "BFXIL",
+		auxType:      auxInt64,
+		argLen:       2,
+		resultInArg0: true,
+		asm:          arm64.ABFXIL,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+				{1, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:    "SBFIZ",
+		auxType: auxInt64,
+		argLen:  1,
+		asm:     arm64.ASBFIZ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:    "SBFX",
+		auxType: auxInt64,
+		argLen:  1,
+		asm:     arm64.ASBFX,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:    "UBFIZ",
+		auxType: auxInt64,
+		argLen:  1,
+		asm:     arm64.AUBFIZ,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
+		name:    "UBFX",
+		auxType: auxInt64,
+		argLen:  1,
+		asm:     arm64.AUBFX,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
 			},
 		},
 	},
@@ -13512,6 +15235,32 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
+		name:   "FMOVDgpfp",
+		argLen: 1,
+		asm:    arm64.AFMOVD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FMOVDfpgp",
+		argLen: 1,
+		asm:    arm64.AFMOVD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
+			},
+		},
+	},
+	{
 		name:   "MOVBreg",
 		argLen: 1,
 		asm:    arm64.AMOVB,
@@ -13850,9 +15599,62 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
-		name:   "CSELULT",
-		argLen: 3,
-		asm:    arm64.ACSEL,
+		name:   "FRINTAD",
+		argLen: 1,
+		asm:    arm64.AFRINTAD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FRINTMD",
+		argLen: 1,
+		asm:    arm64.AFRINTMD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FRINTPD",
+		argLen: 1,
+		asm:    arm64.AFRINTPD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "FRINTZD",
+		argLen: 1,
+		asm:    arm64.AFRINTZD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 9223372034707292160}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:    "CSEL",
+		auxType: auxCCop,
+		argLen:  3,
+		asm:     arm64.ACSEL,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 670826495}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 R30
@@ -13864,9 +15666,10 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
-		name:   "CSELULT0",
-		argLen: 2,
-		asm:    arm64.ACSEL,
+		name:    "CSEL0",
+		auxType: auxCCop,
+		argLen:  2,
+		asm:     arm64.ACSEL,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 805044223}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
@@ -14051,7 +15854,7 @@ var opcodeTable = [...]opInfo{
 				{0, 131072}, // R17
 				{1, 65536},  // R16
 			},
-			clobbers: 537067520, // R16 R17 R30
+			clobbers: 604176384, // R16 R17 R26 R30
 		},
 	},
 	{
@@ -14070,8 +15873,9 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
-		name:   "LoweredGetClosurePtr",
-		argLen: 0,
+		name:      "LoweredGetClosurePtr",
+		argLen:    0,
+		zeroWidth: true,
 		reg: regInfo{
 			outputs: []outputInfo{
 				{0, 67108864}, // R26
@@ -14309,6 +16113,20 @@ var opcodeTable = [...]opInfo{
 				{1, 805044223},           // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30
 				{0, 9223372038733561855}, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R19 R20 R21 R22 R23 R24 R25 R26 g R30 SP SB
 			},
+		},
+	},
+	{
+		name:         "LoweredWB",
+		auxType:      auxSym,
+		argLen:       3,
+		clobberFlags: true,
+		symEffect:    SymNone,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 4}, // R2
+				{1, 8}, // R3
+			},
+			clobbers: 9223372035244163072, // R30 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
 		},
 	},
 
@@ -15658,8 +17476,9 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
-		name:   "LoweredGetClosurePtr",
-		argLen: 0,
+		name:      "LoweredGetClosurePtr",
+		argLen:    0,
+		zeroWidth: true,
 		reg: regInfo{
 			outputs: []outputInfo{
 				{0, 4194304}, // R22
@@ -15674,6 +17493,20 @@ var opcodeTable = [...]opInfo{
 			outputs: []outputInfo{
 				{0, 335544318}, // R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R18 R19 R20 R21 R22 R24 R25 R28 R31
 			},
+		},
+	},
+	{
+		name:         "LoweredWB",
+		auxType:      auxSym,
+		argLen:       3,
+		clobberFlags: true,
+		symEffect:    SymNone,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 1048576}, // R20
+				{1, 2097152}, // R21
+			},
+			clobbers: 140737219919872, // R31 F0 F2 F4 F6 F8 F10 F12 F14 F16 F18 F20 F22 F24 F26 F28 F30 HI LO
 		},
 	},
 	{
@@ -16070,6 +17903,19 @@ var opcodeTable = [...]opInfo{
 		name:   "NEGD",
 		argLen: 1,
 		asm:    mips.ANEGD,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 1152921504338411520}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+			outputs: []outputInfo{
+				{0, 1152921504338411520}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
+			},
+		},
+	},
+	{
+		name:   "SQRTD",
+		argLen: 1,
+		asm:    mips.ASQRTD,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 1152921504338411520}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31
@@ -17163,8 +19009,9 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
-		name:   "LoweredGetClosurePtr",
-		argLen: 0,
+		name:      "LoweredGetClosurePtr",
+		argLen:    0,
+		zeroWidth: true,
 		reg: regInfo{
 			outputs: []outputInfo{
 				{0, 4194304}, // R22
@@ -17179,6 +19026,20 @@ var opcodeTable = [...]opInfo{
 			outputs: []outputInfo{
 				{0, 167772158}, // R1 R2 R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R13 R14 R15 R16 R17 R18 R19 R20 R21 R22 R24 R25 R31
 			},
+		},
+	},
+	{
+		name:         "LoweredWB",
+		auxType:      auxSym,
+		argLen:       3,
+		clobberFlags: true,
+		symEffect:    SymNone,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 1048576}, // R20
+				{1, 2097152}, // R21
+			},
+			clobbers: 4611686018293170176, // R31 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26 F27 F28 F29 F30 F31 HI LO
 		},
 	},
 	{
@@ -18836,8 +20697,9 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
-		name:   "LoweredGetClosurePtr",
-		argLen: 0,
+		name:      "LoweredGetClosurePtr",
+		argLen:    0,
+		zeroWidth: true,
 		reg: regInfo{
 			outputs: []outputInfo{
 				{0, 2048}, // R11
@@ -18871,6 +20733,7 @@ var opcodeTable = [...]opInfo{
 		name:         "LoweredRound32F",
 		argLen:       1,
 		resultInArg0: true,
+		zeroWidth:    true,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 576460743713488896}, // F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26
@@ -18884,6 +20747,7 @@ var opcodeTable = [...]opInfo{
 		name:         "LoweredRound64F",
 		argLen:       1,
 		resultInArg0: true,
+		zeroWidth:    true,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 576460743713488896}, // F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26
@@ -19166,6 +21030,20 @@ var opcodeTable = [...]opInfo{
 				{0, 1073733630}, // SP SB R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R14 R15 R16 R17 R18 R19 R20 R21 R22 R23 R24 R25 R26 R27 R28 R29
 				{1, 1073733630}, // SP SB R3 R4 R5 R6 R7 R8 R9 R10 R11 R12 R14 R15 R16 R17 R18 R19 R20 R21 R22 R23 R24 R25 R26 R27 R28 R29
 			},
+		},
+	},
+	{
+		name:         "LoweredWB",
+		auxType:      auxSym,
+		argLen:       3,
+		clobberFlags: true,
+		symEffect:    SymNone,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 1048576}, // R20
+				{1, 2097152}, // R21
+			},
+			clobbers: 576460746931503104, // R16 R17 R18 R19 R22 R23 R24 R25 R26 R27 R28 R29 R31 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15 F16 F17 F18 F19 F20 F21 F22 F23 F24 F25 F26
 		},
 	},
 	{
@@ -21883,7 +23761,7 @@ var opcodeTable = [...]opInfo{
 		call:         true,
 		symEffect:    SymNone,
 		reg: regInfo{
-			clobbers: 4294923263, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R12 R14 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
+			clobbers: 4294931455, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R12 g R14 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
 		},
 	},
 	{
@@ -21897,7 +23775,7 @@ var opcodeTable = [...]opInfo{
 				{1, 4096},  // R12
 				{0, 54270}, // R1 R2 R3 R4 R5 R6 R7 R8 R9 R12 R14 SP
 			},
-			clobbers: 4294923263, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R12 R14 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
+			clobbers: 4294931455, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R12 g R14 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
 		},
 	},
 	{
@@ -21910,7 +23788,7 @@ var opcodeTable = [...]opInfo{
 			inputs: []inputInfo{
 				{0, 21502}, // R1 R2 R3 R4 R5 R6 R7 R8 R9 R12 R14
 			},
-			clobbers: 4294923263, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R12 R14 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
+			clobbers: 4294931455, // R0 R1 R2 R3 R4 R5 R6 R7 R8 R9 R12 g R14 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
 		},
 	},
 	{
@@ -21928,8 +23806,9 @@ var opcodeTable = [...]opInfo{
 		},
 	},
 	{
-		name:   "LoweredGetClosurePtr",
-		argLen: 0,
+		name:      "LoweredGetClosurePtr",
+		argLen:    0,
+		zeroWidth: true,
 		reg: regInfo{
 			outputs: []outputInfo{
 				{0, 4096}, // R12
@@ -21962,6 +23841,7 @@ var opcodeTable = [...]opInfo{
 		name:         "LoweredRound32F",
 		argLen:       1,
 		resultInArg0: true,
+		zeroWidth:    true,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 4294901760}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
@@ -21975,6 +23855,7 @@ var opcodeTable = [...]opInfo{
 		name:         "LoweredRound64F",
 		argLen:       1,
 		resultInArg0: true,
+		zeroWidth:    true,
 		reg: regInfo{
 			inputs: []inputInfo{
 				{0, 4294901760}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
@@ -21982,6 +23863,20 @@ var opcodeTable = [...]opInfo{
 			outputs: []outputInfo{
 				{0, 4294901760}, // F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
 			},
+		},
+	},
+	{
+		name:         "LoweredWB",
+		auxType:      auxSym,
+		argLen:       3,
+		clobberFlags: true,
+		symEffect:    SymNone,
+		reg: regInfo{
+			inputs: []inputInfo{
+				{0, 4}, // R2
+				{1, 8}, // R3
+			},
+			clobbers: 4294918144, // R14 F0 F1 F2 F3 F4 F5 F6 F7 F8 F9 F10 F11 F12 F13 F14 F15
 		},
 	},
 	{
@@ -22080,6 +23975,7 @@ var opcodeTable = [...]opInfo{
 		name:           "LAA",
 		auxType:        auxSymOff,
 		argLen:         3,
+		clobberFlags:   true,
 		faultOnNilArg0: true,
 		hasSideEffects: true,
 		symEffect:      SymRdWr,
@@ -22098,6 +23994,7 @@ var opcodeTable = [...]opInfo{
 		name:           "LAAG",
 		auxType:        auxSymOff,
 		argLen:         3,
+		clobberFlags:   true,
 		faultOnNilArg0: true,
 		hasSideEffects: true,
 		symEffect:      SymRdWr,
@@ -23218,6 +25115,11 @@ var opcodeTable = [...]opInfo{
 		generic: true,
 	},
 	{
+		name:    "CondSelect",
+		argLen:  3,
+		generic: true,
+	},
+	{
 		name:        "AndB",
 		argLen:      2,
 		commutative: true,
@@ -23407,9 +25309,10 @@ var opcodeTable = [...]opInfo{
 		generic: true,
 	},
 	{
-		name:    "Phi",
-		argLen:  -1,
-		generic: true,
+		name:      "Phi",
+		argLen:    -1,
+		zeroWidth: true,
+		generic:   true,
 	},
 	{
 		name:    "Copy",
@@ -23485,14 +25388,16 @@ var opcodeTable = [...]opInfo{
 		generic: true,
 	},
 	{
-		name:    "InitMem",
-		argLen:  0,
-		generic: true,
+		name:      "InitMem",
+		argLen:    0,
+		zeroWidth: true,
+		generic:   true,
 	},
 	{
 		name:      "Arg",
 		auxType:   auxSymOff,
 		argLen:    0,
+		zeroWidth: true,
 		symEffect: SymRead,
 		generic:   true,
 	},
@@ -23504,14 +25409,16 @@ var opcodeTable = [...]opInfo{
 		generic:   true,
 	},
 	{
-		name:    "SP",
-		argLen:  0,
-		generic: true,
+		name:      "SP",
+		argLen:    0,
+		zeroWidth: true,
+		generic:   true,
 	},
 	{
-		name:    "SB",
-		argLen:  0,
-		generic: true,
+		name:      "SB",
+		argLen:    0,
+		zeroWidth: true,
+		generic:   true,
 	},
 	{
 		name:    "Load",
@@ -23754,9 +25661,10 @@ var opcodeTable = [...]opInfo{
 		generic: true,
 	},
 	{
-		name:    "GetG",
-		argLen:  1,
-		generic: true,
+		name:      "GetG",
+		argLen:    1,
+		zeroWidth: true,
+		generic:   true,
 	},
 	{
 		name:    "GetClosurePtr",
@@ -23922,6 +25830,7 @@ var opcodeTable = [...]opInfo{
 		name:      "VarDef",
 		auxType:   auxSym,
 		argLen:    1,
+		zeroWidth: true,
 		symEffect: SymNone,
 		generic:   true,
 	},
@@ -23936,18 +25845,15 @@ var opcodeTable = [...]opInfo{
 		name:      "VarLive",
 		auxType:   auxSym,
 		argLen:    1,
+		zeroWidth: true,
 		symEffect: SymRead,
 		generic:   true,
 	},
 	{
-		name:    "KeepAlive",
-		argLen:  2,
-		generic: true,
-	},
-	{
-		name:    "RegKill",
-		argLen:  0,
-		generic: true,
+		name:      "KeepAlive",
+		argLen:    2,
+		zeroWidth: true,
+		generic:   true,
 	},
 	{
 		name:    "Int64Make",
@@ -24042,14 +25948,16 @@ var opcodeTable = [...]opInfo{
 		generic: true,
 	},
 	{
-		name:    "Select0",
-		argLen:  1,
-		generic: true,
+		name:      "Select0",
+		argLen:    1,
+		zeroWidth: true,
+		generic:   true,
 	},
 	{
-		name:    "Select1",
-		argLen:  1,
-		generic: true,
+		name:      "Select1",
+		argLen:    1,
+		zeroWidth: true,
+		generic:   true,
 	},
 	{
 		name:    "AtomicLoad32",

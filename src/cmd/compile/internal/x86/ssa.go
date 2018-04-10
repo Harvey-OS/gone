@@ -335,19 +335,12 @@ func ssaGenValue(s *gc.SSAGenState, v *ssa.Value) {
 
 	case ssa.Op386MULLconst:
 		r := v.Reg()
-		if r != v.Args[0].Reg() {
-			v.Fatalf("input[0] and output not in same register %s", v.LongString())
-		}
 		p := s.Prog(v.Op.Asm())
 		p.From.Type = obj.TYPE_CONST
 		p.From.Offset = v.AuxInt
 		p.To.Type = obj.TYPE_REG
 		p.To.Reg = r
-		// TODO: Teach doasm to compile the three-address multiply imul $c, r1, r2
-		// then we don't need to use resultInArg0 for these ops.
-		//p.From3 = new(obj.Addr)
-		//p.From3.Type = obj.TYPE_REG
-		//p.From3.Reg = v.Args[0].Reg()
+		p.SetFrom3(obj.Addr{Type: obj.TYPE_REG, Reg: v.Args[0].Reg()})
 
 	case ssa.Op386SUBLconst,
 		ssa.Op386ADCLconst,
@@ -517,6 +510,17 @@ func ssaGenValue(s *gc.SSAGenState, v *ssa.Value) {
 		gc.AddAux(&p.From, v)
 		p.To.Type = obj.TYPE_REG
 		p.To.Reg = v.Reg()
+	case ssa.Op386ADDLmem, ssa.Op386SUBLmem, ssa.Op386ANDLmem, ssa.Op386ORLmem, ssa.Op386XORLmem,
+		ssa.Op386ADDSDmem, ssa.Op386ADDSSmem, ssa.Op386SUBSDmem, ssa.Op386SUBSSmem, ssa.Op386MULSDmem, ssa.Op386MULSSmem:
+		p := s.Prog(v.Op.Asm())
+		p.From.Type = obj.TYPE_MEM
+		p.From.Reg = v.Args[1].Reg()
+		gc.AddAux(&p.From, v)
+		p.To.Type = obj.TYPE_REG
+		p.To.Reg = v.Reg()
+		if v.Reg() != v.Args[0].Reg() {
+			v.Fatalf("input[0] and output not in same register %s", v.LongString())
+		}
 	case ssa.Op386MOVSSstore, ssa.Op386MOVSDstore, ssa.Op386MOVLstore, ssa.Op386MOVWstore, ssa.Op386MOVBstore:
 		p := s.Prog(v.Op.Asm())
 		p.From.Type = obj.TYPE_REG
@@ -690,6 +694,12 @@ func ssaGenValue(s *gc.SSAGenState, v *ssa.Value) {
 		p.From.Name = obj.NAME_PARAM
 		p.To.Type = obj.TYPE_REG
 		p.To.Reg = v.Reg()
+
+	case ssa.Op386LoweredWB:
+		p := s.Prog(obj.ACALL)
+		p.To.Type = obj.TYPE_MEM
+		p.To.Name = obj.NAME_EXTERN
+		p.To.Sym = v.Aux.(*obj.LSym)
 
 	case ssa.Op386CALLstatic, ssa.Op386CALLclosure, ssa.Op386CALLinter:
 		s.Call(v)

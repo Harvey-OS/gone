@@ -21,11 +21,13 @@ func (p *Prog) Line() string {
 // InnermostLineNumber returns a string containing the line number for the
 // innermost inlined function (if any inlining) at p's position
 func (p *Prog) InnermostLineNumber() string {
-	pos := p.Ctxt.InnermostPos(p.Pos)
-	if !pos.IsKnown() {
-		return "?"
-	}
-	return fmt.Sprintf("%d", pos.Line())
+	return p.Ctxt.InnermostPos(p.Pos).LineNumber()
+}
+
+// InnermostLineNumberHTML returns a string containing the line number for the
+// innermost inlined function (if any inlining) at p's position
+func (p *Prog) InnermostLineNumberHTML() string {
+	return p.Ctxt.InnermostPos(p.Pos).LineNumberHTML()
 }
 
 // InnermostFilename returns a string containing the innermost
@@ -163,10 +165,6 @@ func (ctxt *Link) CanReuseProgs() bool {
 	return !ctxt.Debugasm
 }
 
-func (ctxt *Link) Dconv(a *Addr) string {
-	return Dconv(nil, a)
-}
-
 func Dconv(p *Prog, a *Addr) string {
 	var str string
 
@@ -263,7 +261,8 @@ func Dconv(p *Prog, a *Addr) string {
 			}
 		case "arm64":
 			op := ops[((v>>22)&3)<<1:]
-			str = fmt.Sprintf("R%d%c%c%d", (v>>16)&31, op[0], op[1], (v>>10)&63)
+			r := (v >> 16) & 31
+			str = fmt.Sprintf("%s%c%c%d", Rconv(r+RBaseARM64), op[0], op[1], (v>>10)&63)
 		default:
 			panic("TYPE_SHIFT is not supported on " + objabi.GOARCH)
 		}
