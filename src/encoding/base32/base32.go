@@ -244,8 +244,9 @@ func (e *encoder) Close() error {
 	// If there's anything left in the buffer, flush it out
 	if e.err == nil && e.nbuf > 0 {
 		e.enc.Encode(e.out[0:], e.buf[0:e.nbuf])
+		encodedLen := e.enc.EncodedLen(e.nbuf)
 		e.nbuf = 0
-		_, e.err = e.w.Write(e.out[0:8])
+		_, e.err = e.w.Write(e.out[0:encodedLen])
 	}
 	return e.err
 }
@@ -409,7 +410,12 @@ func readEncodedData(r io.Reader, buf []byte, min int) (n int, err error) {
 		nn, err = r.Read(buf[n:])
 		n += nn
 	}
+	// data was read, less than min bytes could be read
 	if n < min && n > 0 && err == io.EOF {
+		err = io.ErrUnexpectedEOF
+	}
+	// no data was read, the buffer already contains some data
+	if min < 8 && n == 0 && err == io.EOF {
 		err = io.ErrUnexpectedEOF
 	}
 	return

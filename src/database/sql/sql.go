@@ -24,6 +24,7 @@ import (
 	"reflect"
 	"runtime"
 	"sort"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -131,6 +132,31 @@ const (
 	LevelSerializable
 	LevelLinearizable
 )
+
+func (i IsolationLevel) String() string {
+	switch i {
+	case LevelDefault:
+		return "Default"
+	case LevelReadUncommitted:
+		return "Read Uncommitted"
+	case LevelReadCommitted:
+		return "Read Committed"
+	case LevelWriteCommitted:
+		return "Write Committed"
+	case LevelRepeatableRead:
+		return "Repeatable Read"
+	case LevelSnapshot:
+		return "Snapshot"
+	case LevelSerializable:
+		return "Serializable"
+	case LevelLinearizable:
+		return "Linearizable"
+	default:
+		return "IsolationLevel(" + strconv.Itoa(int(i)) + ")"
+	}
+}
+
+var _ fmt.Stringer = LevelDefault
 
 // TxOptions holds the transaction options to be used in DB.BeginTx.
 type TxOptions struct {
@@ -712,7 +738,9 @@ func (db *DB) Ping() error {
 	return db.PingContext(context.Background())
 }
 
-// Close closes the database, releasing any open resources.
+// Close closes the database and prevents new queries from starting.
+// Close then waits for all queries that have started processing on the server
+// to finish.
 //
 // It is rare to Close a DB, as the DB handle is meant to be
 // long-lived and shared between many goroutines.
@@ -764,8 +792,8 @@ func (db *DB) maxIdleConnsLocked() int {
 // SetMaxIdleConns sets the maximum number of connections in the idle
 // connection pool.
 //
-// If MaxOpenConns is greater than 0 but less than the new MaxIdleConns
-// then the new MaxIdleConns will be reduced to match the MaxOpenConns limit
+// If MaxOpenConns is greater than 0 but less than the new MaxIdleConns,
+// then the new MaxIdleConns will be reduced to match the MaxOpenConns limit.
 //
 // If n <= 0, no idle connections are retained.
 func (db *DB) SetMaxIdleConns(n int) {
@@ -797,7 +825,7 @@ func (db *DB) SetMaxIdleConns(n int) {
 //
 // If MaxIdleConns is greater than 0 and the new MaxOpenConns is less than
 // MaxIdleConns, then MaxIdleConns will be reduced to match the new
-// MaxOpenConns limit
+// MaxOpenConns limit.
 //
 // If n <= 0, then there is no limit on the number of open connections.
 // The default is 0 (unlimited).
@@ -1603,7 +1631,7 @@ func (db *DB) Driver() driver.Driver {
 
 // ErrConnDone is returned by any operation that is performed on a connection
 // that has already been returned to the connection pool.
-var ErrConnDone = errors.New("database/sql: connection is already closed")
+var ErrConnDone = errors.New("sql: connection is already closed")
 
 // Conn returns a single connection by either opening a new connection
 // or returning an existing connection from the connection pool. Conn will
@@ -1851,7 +1879,7 @@ func (tx *Tx) isDone() bool {
 
 // ErrTxDone is returned by any operation that is performed on a transaction
 // that has already been committed or rolled back.
-var ErrTxDone = errors.New("sql: Transaction has already been committed or rolled back")
+var ErrTxDone = errors.New("sql: transaction has already been committed or rolled back")
 
 // close returns the connection to the pool and
 // must only be called by Tx.rollback or Tx.Commit.
@@ -1914,7 +1942,7 @@ func (tx *Tx) closePrepared() {
 // Commit commits the transaction.
 func (tx *Tx) Commit() error {
 	// Check context first to avoid transaction leak.
-	// If put it behind tx.done CompareAndSwap statement, we cant't ensure
+	// If put it behind tx.done CompareAndSwap statement, we can't ensure
 	// the consistency between tx.done and the real COMMIT operation.
 	select {
 	default:
@@ -2055,14 +2083,14 @@ func (tx *Tx) StmtContext(ctx context.Context, stmt *Stmt) *Stmt {
 		stmt.mu.Unlock()
 
 		if si == nil {
+			var ds *driverStmt
 			withLock(dc, func() {
-				var ds *driverStmt
 				ds, err = stmt.prepareOnConnLocked(ctx, dc)
-				si = ds.si
 			})
 			if err != nil {
 				return &Stmt{stickyErr: err}
 			}
+			si = ds.si
 		}
 		parentStmt = stmt
 	}
@@ -2262,13 +2290,6 @@ func resultFromStatement(ctx context.Context, ci driver.Conn, ds *driverStmt, ar
 		return nil, err
 	}
 
-	// -1 means the driver doesn't know how to count the number of
-	// placeholders, so we won't sanity check input here and instead let the
-	// driver deal with errors.
-	if want := ds.si.NumInput(); want >= 0 && want != len(dargs) {
-		return nil, fmt.Errorf("sql: statement expects %d inputs; got %d", want, len(dargs))
-	}
-
 	resi, err := ctxDriverStmtExec(ctx, ds.si, dargs)
 	if err != nil {
 		return nil, err
@@ -2317,7 +2338,7 @@ func (s *Stmt) connStmt(ctx context.Context, strategy connReuseStrategy) (dc *dr
 	}
 
 	// In a transaction or connection, we always use the connection that the
-	// the stmt was created on.
+	// stmt was created on.
 	if s.cg != nil {
 		s.mu.Unlock()
 		dc, releaseConn, err = s.cg.grabConn(ctx) // blocks, waiting for the connection.
@@ -2434,24 +2455,11 @@ func (s *Stmt) Query(args ...interface{}) (*Rows, error) {
 func rowsiFromStatement(ctx context.Context, ci driver.Conn, ds *driverStmt, args ...interface{}) (driver.Rows, error) {
 	ds.Lock()
 	defer ds.Unlock()
-
 	dargs, err := driverArgsConnLocked(ci, ds, args)
 	if err != nil {
 		return nil, err
 	}
-
-	// -1 means the driver doesn't know how to count the number of
-	// placeholders, so we won't sanity check input here and instead let the
-	// driver deal with errors.
-	if want := ds.si.NumInput(); want >= 0 && want != len(dargs) {
-		return nil, fmt.Errorf("sql: statement expects %d inputs; got %d", want, len(dargs))
-	}
-
-	rowsi, err := ctxDriverStmtQuery(ctx, ds.si, dargs)
-	if err != nil {
-		return nil, err
-	}
-	return rowsi, nil
+	return ctxDriverStmtQuery(ctx, ds.si, dargs)
 }
 
 // QueryRowContext executes a prepared query statement with the given arguments.
@@ -2460,11 +2468,6 @@ func rowsiFromStatement(ctx context.Context, ci driver.Conn, ds *driverStmt, arg
 // If the query selects no rows, the *Row's Scan will return ErrNoRows.
 // Otherwise, the *Row's Scan scans the first selected row and discards
 // the rest.
-//
-// Example usage:
-//
-//  var name string
-//  err := nameByUseridStmt.QueryRowContext(ctx, id).Scan(&name)
 func (s *Stmt) QueryRowContext(ctx context.Context, args ...interface{}) *Row {
 	rows, err := s.QueryContext(ctx, args...)
 	if err != nil {
@@ -2533,19 +2536,7 @@ func (s *Stmt) finalClose() error {
 }
 
 // Rows is the result of a query. Its cursor starts before the first row
-// of the result set. Use Next to advance through the rows:
-//
-//     rows, err := db.Query("SELECT ...")
-//     ...
-//     defer rows.Close()
-//     for rows.Next() {
-//         var id int
-//         var name string
-//         err = rows.Scan(&id, &name)
-//         ...
-//     }
-//     err = rows.Err() // get any error encountered during iteration
-//     ...
+// of the result set. Use Next to advance from row to row.
 type Rows struct {
 	dc          *driverConn // owned; must call releaseConn when closed to release
 	releaseConn func(error)
@@ -2568,6 +2559,9 @@ type Rows struct {
 }
 
 func (rs *Rows) initContextClose(ctx, txctx context.Context) {
+	if ctx.Done() == nil && (txctx == nil || txctx.Done() == nil) {
+		return
+	}
 	ctx, rs.cancel = context.WithCancel(ctx)
 	go rs.awaitDone(ctx, txctx)
 }
@@ -2861,7 +2855,7 @@ func rowsColumnInfoSetupConnLocked(rowsi driver.Rows) []*ColumnType {
 //
 // Source values of type time.Time may be scanned into values of type
 // *time.Time, *interface{}, *string, or *[]byte. When converting to
-// the latter two, time.Format3339Nano is used.
+// the latter two, time.RFC3339Nano is used.
 //
 // Source values of type bool may be scanned into types *bool,
 // *interface{}, *string, *[]byte, or *RawBytes.
@@ -2870,6 +2864,11 @@ func rowsColumnInfoSetupConnLocked(rowsi driver.Rows) []*ColumnType {
 // string inputs parseable by strconv.ParseBool.
 func (rs *Rows) Scan(dest ...interface{}) error {
 	rs.closemu.RLock()
+
+	if rs.lasterr != nil && rs.lasterr != io.EOF {
+		rs.closemu.RUnlock()
+		return rs.lasterr
+	}
 	if rs.closed {
 		rs.closemu.RUnlock()
 		return errors.New("sql: Rows are closed")
@@ -2885,7 +2884,7 @@ func (rs *Rows) Scan(dest ...interface{}) error {
 	for i, sv := range rs.lastcols {
 		err := convertAssign(dest[i], sv)
 		if err != nil {
-			return fmt.Errorf("sql: Scan error on column index %d: %v", i, err)
+			return fmt.Errorf(`sql: Scan error on column index %d, name %q: %v`, i, rs.rowsi.Columns()[i], err)
 		}
 	}
 	return nil
@@ -2981,11 +2980,7 @@ func (r *Row) Scan(dest ...interface{}) error {
 		return err
 	}
 	// Make sure the query can be processed to completion with no errors.
-	if err := r.rows.Close(); err != nil {
-		return err
-	}
-
-	return nil
+	return r.rows.Close()
 }
 
 // A Result summarizes an executed SQL command.

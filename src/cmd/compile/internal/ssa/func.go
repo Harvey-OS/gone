@@ -28,7 +28,7 @@ type Func struct {
 	Cache  *Cache      // re-usable cache
 	fe     Frontend    // frontend state associated with this Func, callbacks into compiler frontend
 	pass   *pass       // current pass information (name, options, etc.)
-	Name   string      // e.g. bytes·Compare
+	Name   string      // e.g. NewFunc or (*Func).NumBlocks (no package prefix)
 	Type   *types.Type // type signature of the function.
 	Blocks []*Block    // unordered set of all basic blocks (note: not indexable by ID)
 	Entry  *Block      // the entry basic block
@@ -84,9 +84,9 @@ func (f *Func) NumValues() int {
 
 // newSparseSet returns a sparse set that can store at least up to n integers.
 func (f *Func) newSparseSet(n int) *sparseSet {
-	for i, scr := range f.Cache.scrSparse {
+	for i, scr := range f.Cache.scrSparseSet {
 		if scr != nil && scr.cap() >= n {
-			f.Cache.scrSparse[i] = nil
+			f.Cache.scrSparseSet[i] = nil
 			scr.clear()
 			return scr
 		}
@@ -94,15 +94,40 @@ func (f *Func) newSparseSet(n int) *sparseSet {
 	return newSparseSet(n)
 }
 
-// retSparseSet returns a sparse set to the config's cache of sparse sets to be reused by f.newSparseSet.
+// retSparseSet returns a sparse set to the config's cache of sparse
+// sets to be reused by f.newSparseSet.
 func (f *Func) retSparseSet(ss *sparseSet) {
-	for i, scr := range f.Cache.scrSparse {
+	for i, scr := range f.Cache.scrSparseSet {
 		if scr == nil {
-			f.Cache.scrSparse[i] = ss
+			f.Cache.scrSparseSet[i] = ss
 			return
 		}
 	}
-	f.Cache.scrSparse = append(f.Cache.scrSparse, ss)
+	f.Cache.scrSparseSet = append(f.Cache.scrSparseSet, ss)
+}
+
+// newSparseMap returns a sparse map that can store at least up to n integers.
+func (f *Func) newSparseMap(n int) *sparseMap {
+	for i, scr := range f.Cache.scrSparseMap {
+		if scr != nil && scr.cap() >= n {
+			f.Cache.scrSparseMap[i] = nil
+			scr.clear()
+			return scr
+		}
+	}
+	return newSparseMap(n)
+}
+
+// retSparseMap returns a sparse map to the config's cache of sparse
+// sets to be reused by f.newSparseMap.
+func (f *Func) retSparseMap(ss *sparseMap) {
+	for i, scr := range f.Cache.scrSparseMap {
+		if scr == nil {
+			f.Cache.scrSparseMap[i] = ss
+			return
+		}
+	}
+	f.Cache.scrSparseMap = append(f.Cache.scrSparseMap, ss)
 }
 
 // newValue allocates a new Value with the given fields and places it at the end of b.Values.
@@ -350,6 +375,19 @@ func (b *Block) NewValue2I(pos src.XPos, op Op, t *types.Type, auxint int64, arg
 	return v
 }
 
+// NewValue2IA returns a new value in the block with two arguments and both an auxint and aux values.
+func (b *Block) NewValue2IA(pos src.XPos, op Op, t *types.Type, auxint int64, aux interface{}, arg0, arg1 *Value) *Value {
+	v := b.Func.newValue(op, t, b, pos)
+	v.AuxInt = auxint
+	v.Aux = aux
+	v.Args = v.argstorage[:2]
+	v.argstorage[0] = arg0
+	v.argstorage[1] = arg1
+	arg0.Uses++
+	arg1.Uses++
+	return v
+}
+
 // NewValue3 returns a new value in the block with three arguments and zero aux values.
 func (b *Block) NewValue3(pos src.XPos, op Op, t *types.Type, arg0, arg1, arg2 *Value) *Value {
 	v := b.Func.newValue(op, t, b, pos)
@@ -406,8 +444,7 @@ func (b *Block) NewValue4(pos src.XPos, op Op, t *types.Type, arg0, arg1, arg2, 
 }
 
 // constVal returns a constant value for c.
-func (f *Func) constVal(pos src.XPos, op Op, t *types.Type, c int64, setAuxInt bool) *Value {
-	// TODO remove unused pos parameter, both here and in *func.ConstXXX callers.
+func (f *Func) constVal(op Op, t *types.Type, c int64, setAuxInt bool) *Value {
 	if f.constants == nil {
 		f.constants = make(map[int64][]*Value)
 	}
@@ -442,48 +479,48 @@ const (
 )
 
 // ConstInt returns an int constant representing its argument.
-func (f *Func) ConstBool(pos src.XPos, t *types.Type, c bool) *Value {
+func (f *Func) ConstBool(t *types.Type, c bool) *Value {
 	i := int64(0)
 	if c {
 		i = 1
 	}
-	return f.constVal(pos, OpConstBool, t, i, true)
+	return f.constVal(OpConstBool, t, i, true)
 }
-func (f *Func) ConstInt8(pos src.XPos, t *types.Type, c int8) *Value {
-	return f.constVal(pos, OpConst8, t, int64(c), true)
+func (f *Func) ConstInt8(t *types.Type, c int8) *Value {
+	return f.constVal(OpConst8, t, int64(c), true)
 }
-func (f *Func) ConstInt16(pos src.XPos, t *types.Type, c int16) *Value {
-	return f.constVal(pos, OpConst16, t, int64(c), true)
+func (f *Func) ConstInt16(t *types.Type, c int16) *Value {
+	return f.constVal(OpConst16, t, int64(c), true)
 }
-func (f *Func) ConstInt32(pos src.XPos, t *types.Type, c int32) *Value {
-	return f.constVal(pos, OpConst32, t, int64(c), true)
+func (f *Func) ConstInt32(t *types.Type, c int32) *Value {
+	return f.constVal(OpConst32, t, int64(c), true)
 }
-func (f *Func) ConstInt64(pos src.XPos, t *types.Type, c int64) *Value {
-	return f.constVal(pos, OpConst64, t, c, true)
+func (f *Func) ConstInt64(t *types.Type, c int64) *Value {
+	return f.constVal(OpConst64, t, c, true)
 }
-func (f *Func) ConstFloat32(pos src.XPos, t *types.Type, c float64) *Value {
-	return f.constVal(pos, OpConst32F, t, int64(math.Float64bits(float64(float32(c)))), true)
+func (f *Func) ConstFloat32(t *types.Type, c float64) *Value {
+	return f.constVal(OpConst32F, t, int64(math.Float64bits(float64(float32(c)))), true)
 }
-func (f *Func) ConstFloat64(pos src.XPos, t *types.Type, c float64) *Value {
-	return f.constVal(pos, OpConst64F, t, int64(math.Float64bits(c)), true)
+func (f *Func) ConstFloat64(t *types.Type, c float64) *Value {
+	return f.constVal(OpConst64F, t, int64(math.Float64bits(c)), true)
 }
 
-func (f *Func) ConstSlice(pos src.XPos, t *types.Type) *Value {
-	return f.constVal(pos, OpConstSlice, t, constSliceMagic, false)
+func (f *Func) ConstSlice(t *types.Type) *Value {
+	return f.constVal(OpConstSlice, t, constSliceMagic, false)
 }
-func (f *Func) ConstInterface(pos src.XPos, t *types.Type) *Value {
-	return f.constVal(pos, OpConstInterface, t, constInterfaceMagic, false)
+func (f *Func) ConstInterface(t *types.Type) *Value {
+	return f.constVal(OpConstInterface, t, constInterfaceMagic, false)
 }
-func (f *Func) ConstNil(pos src.XPos, t *types.Type) *Value {
-	return f.constVal(pos, OpConstNil, t, constNilMagic, false)
+func (f *Func) ConstNil(t *types.Type) *Value {
+	return f.constVal(OpConstNil, t, constNilMagic, false)
 }
-func (f *Func) ConstEmptyString(pos src.XPos, t *types.Type) *Value {
-	v := f.constVal(pos, OpConstString, t, constEmptyStringMagic, false)
+func (f *Func) ConstEmptyString(t *types.Type) *Value {
+	v := f.constVal(OpConstString, t, constEmptyStringMagic, false)
 	v.Aux = ""
 	return v
 }
-func (f *Func) ConstOffPtrSP(pos src.XPos, t *types.Type, c int64, sp *Value) *Value {
-	v := f.constVal(pos, OpOffPtr, t, c, true)
+func (f *Func) ConstOffPtrSP(t *types.Type, c int64, sp *Value) *Value {
+	v := f.constVal(OpOffPtr, t, c, true)
 	if len(v.Args) == 0 {
 		v.AddArg(sp)
 	}

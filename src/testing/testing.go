@@ -6,8 +6,8 @@
 // It is intended to be used in concert with the ``go test'' command, which automates
 // execution of any function of the form
 //     func TestXxx(*testing.T)
-// where Xxx can be any alphanumeric string (but the first letter must not be in
-// [a-z]) and serves to identify the test routine.
+// where Xxx does not start with a lowercase letter. The function name
+// serves to identify the test routine.
 //
 // Within these functions, use the Error, Fail or related methods to signal failure.
 //
@@ -34,7 +34,7 @@
 // its -bench flag is provided. Benchmarks are run sequentially.
 //
 // For a description of the testing flags, see
-// https://golang.org/cmd/go/#hdr-Description_of_testing_flags.
+// https://golang.org/cmd/go/#hdr-Testing_flags
 //
 // A sample benchmark function looks like this:
 //     func BenchmarkHello(b *testing.B) {
@@ -178,6 +178,9 @@
 //         }
 //     }
 //
+// The race detector kills the program if it exceeds 8192 concurrent goroutines,
+// so use care when running parallel tests with the -race flag set.
+//
 // Run does not return until parallel subtests have completed, providing a way
 // to clean up after a group of parallel tests:
 //
@@ -257,8 +260,8 @@ var (
 	coverProfile         = flag.String("test.coverprofile", "", "write a coverage profile to `file`")
 	matchList            = flag.String("test.list", "", "list tests, examples, and benchmarks matching `regexp` then exit")
 	match                = flag.String("test.run", "", "run only tests and examples matching `regexp`")
-	memProfile           = flag.String("test.memprofile", "", "write a memory profile to `file`")
-	memProfileRate       = flag.Int("test.memprofilerate", 0, "set memory profiling `rate` (see runtime.MemProfileRate)")
+	memProfile           = flag.String("test.memprofile", "", "write an allocation profile to `file`")
+	memProfileRate       = flag.Int("test.memprofilerate", 0, "set memory allocation profiling `rate` (see runtime.MemProfileRate)")
 	cpuProfile           = flag.String("test.cpuprofile", "", "write a cpu profile to `file`")
 	blockProfile         = flag.String("test.blockprofile", "", "write a goroutine blocking profile to `file`")
 	blockProfileRate     = flag.Int("test.blockprofilerate", 1, "set blocking profile `rate` (see runtime.SetBlockProfileRate)")
@@ -376,7 +379,7 @@ func (c *common) decorate(s string) string {
 		file = "???"
 		line = 1
 	}
-	buf := new(bytes.Buffer)
+	buf := new(strings.Builder)
 	// Every line is indented at least one tab.
 	buf.WriteByte('\t')
 	fmt.Fprintf(buf, "%s:%d: ", file, line)
@@ -718,6 +721,8 @@ type InternalTest struct {
 	F    func(*T)
 }
 
+var errNilPanicOrGoexit = errors.New("test executed panic(nil) or runtime.Goexit")
+
 func tRunner(t *T, fn func(t *T)) {
 	t.runner = callerName(0)
 
@@ -726,6 +731,10 @@ func tRunner(t *T, fn func(t *T)) {
 	// a call to runtime.Goexit, record the duration and send
 	// a signal saying that the test is done.
 	defer func() {
+		if t.Failed() {
+			atomic.AddUint32(&numFailed, 1)
+		}
+
 		if t.raceErrors+race.Errors() > 0 {
 			t.Errorf("race detected during execution of test")
 		}
@@ -733,8 +742,17 @@ func tRunner(t *T, fn func(t *T)) {
 		t.duration += time.Since(t.start)
 		// If the test panicked, print any test output before dying.
 		err := recover()
+		signal := true
 		if !t.finished && err == nil {
-			err = fmt.Errorf("test executed panic(nil) or runtime.Goexit")
+			err = errNilPanicOrGoexit
+			for p := t.parent; p != nil; p = p.parent {
+				if p.finished {
+					t.Errorf("%v: subtest may have called FailNow on a parent test", err)
+					err = nil
+					signal = false
+					break
+				}
+			}
 		}
 		if err != nil {
 			t.Fail()
@@ -769,16 +787,14 @@ func tRunner(t *T, fn func(t *T)) {
 		if t.parent != nil && atomic.LoadInt32(&t.hasSub) == 0 {
 			t.setRan()
 		}
-		t.signal <- true
+		t.signal <- signal
 	}()
 
 	t.start = time.Now()
 	t.raceErrors = -race.Errors()
 	fn(t)
 
-	if t.failed {
-		atomic.AddUint32(&numFailed, 1)
-	}
+	// code beyond here will not be executed when FailNow is invoked
 	t.finished = true
 }
 
@@ -822,7 +838,11 @@ func (t *T) Run(name string, f func(t *T)) bool {
 	// without being preempted, even when their parent is a parallel test. This
 	// may especially reduce surprises if *parallel == 1.
 	go tRunner(t, f)
-	<-t.signal
+	if !<-t.signal {
+		// At this point, it is likely that FailNow was called on one of the
+		// parent tests by one of the subtests. Continue aborting up the chain.
+		runtime.Goexit()
+	}
 	return !t.failed
 }
 
@@ -889,7 +909,6 @@ type matchStringOnly func(pat, str string) (bool, error)
 func (f matchStringOnly) MatchString(pat, str string) (bool, error)   { return f(pat, str) }
 func (f matchStringOnly) StartCPUProfile(w io.Writer) error           { return errMain }
 func (f matchStringOnly) StopCPUProfile()                             {}
-func (f matchStringOnly) WriteHeapProfile(w io.Writer) error          { return errMain }
 func (f matchStringOnly) WriteProfileTo(string, io.Writer, int) error { return errMain }
 func (f matchStringOnly) ImportPath() string                          { return "" }
 func (f matchStringOnly) StartTestLog(io.Writer)                      {}
@@ -929,7 +948,6 @@ type testDeps interface {
 	StopCPUProfile()
 	StartTestLog(io.Writer)
 	StopTestLog() error
-	WriteHeapProfile(io.Writer) error
 	WriteProfileTo(string, io.Writer, int) error
 }
 
@@ -1168,7 +1186,7 @@ func (m *M) writeProfiles() {
 			os.Exit(2)
 		}
 		runtime.GC() // materialize all statistics
-		if err = m.deps.WriteHeapProfile(f); err != nil {
+		if err = m.deps.WriteProfileTo("allocs", f, 0); err != nil {
 			fmt.Fprintf(os.Stderr, "testing: can't write %s: %s\n", *memProfile, err)
 			os.Exit(2)
 		}
